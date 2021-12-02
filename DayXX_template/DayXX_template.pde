@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2020\\AoC2020_day21\\data\\mydata");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\DayXX\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -16,7 +16,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 // Raw input and parsed input lists for *all data*
 InputFile input = new InputFile("input.txt");
 
-// Master list of all suspect allergens
+// Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
 void setup() {
@@ -31,7 +31,7 @@ void setup() {
   
   int i=0,j=0;
 
-  // Loop through each food...
+  // Loop through each input item...
   for (i=0;i<input.lines.size();i++)
   {
   
@@ -44,7 +44,7 @@ void printMasterList()
   int i=0;
   for (i=0;i<masterList.size();i++)
   {
-    println("Allergen ML:"+masterList.get(i));
+    println("ML input:"+masterList.get(i));
   }
 }
 
