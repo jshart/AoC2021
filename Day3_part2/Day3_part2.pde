@@ -19,6 +19,9 @@ InputFile input = new InputFile("input.txt");
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
+int o2=0;
+int co2=0;
+
 void setup() {
   size(200, 200);
   background(0);
@@ -29,19 +32,26 @@ void setup() {
   println();
   input.printFile();
   
-  int i=0,j=0;
+  //int i=0,j=0;
 
-  String temp = input.lines.get(0);
-  BitProcessor bits = new BitProcessor(temp.length());
+  //String temp = input.lines.get(0);
+  //BitProcessor bits = new BitProcessor(temp.length());
   
 
-  // Loop through each input item...
-  for (i=0;i<input.lines.size();i++)
-  {
-    bits.update(input.lines.get(i));
-  }
+  //// Loop through each input item...
+  //for (i=0;i<input.lines.size();i++)
+  //{
+  //  bits.update(input.lines.get(i));
+  //}
   
-  bits.results();
+  //bits.results();
+  
+  
+  SplitList sList = new SplitList(input.lines, 0, 0); //O2
+  SplitList sList2 = new SplitList(input.lines, 0, 1); // CO2
+  
+  print("FINAL: CO="+co2+" O2="+o2+" LSR="+(co2*o2));
+
 }
 
 void printMasterList()
@@ -56,6 +66,117 @@ void printMasterList()
 
 void draw() {  
 
+}
+
+public class SplitList
+{
+  ArrayList<String> list0 = new ArrayList<String>();
+  ArrayList<String> list1 = new ArrayList<String>();
+  
+  public SplitList(ArrayList<String> list, int splitPos, int mode)
+  {
+    int l=list.get(0).length();
+    
+    // Verify we're not beyond the bit position possible for the word we're processing
+    if (splitPos<l)
+    {
+      int i=0;
+      int listL=list.size();
+      
+      String temp;
+      
+      // for each element in the input list, split the list
+      for (i=0;i<listL;i++)
+      {
+        temp = list.get(i);
+        if (temp.charAt(splitPos)=='0')
+        {
+          list0.add(temp);
+        }
+        else
+        {
+          list1.add(temp);
+        }
+      }
+      
+      // List is now divided into elements with 0 or 1 in the "splitPos" position.
+      // depending on mode, I now need to iterate on a specific sublist.
+      // mode==0 oxygen, mode==1 CO2
+      int size0=list0.size();
+      int size1=list1.size();
+      
+      println("List split. 0="+size0+" 1="+size1);
+      
+      if (mode==0) //Oxygen
+      {
+        // Oxygen looks for most common value (so longest list)
+        // if equal length, go for list1
+        if (size0>size1)
+        {
+          // use size0 list
+          if (size0==1)
+          {
+            print("O2 found:"+list0.get(0));
+            println(","+(o2=Integer.parseInt(list1.get(0),2)));
+            return;
+          }
+          else
+          {
+            SplitList sl = new SplitList(list0,++splitPos,mode);
+          }
+        }
+        else
+        {
+          // use size1 list
+          if (size1==1)
+          {
+            print("O2 found:"+list1.get(0));
+            println(","+(o2=Integer.parseInt(list1.get(0),2)));
+
+            return;
+          }
+          else
+          {
+            SplitList sl = new SplitList(list1,++splitPos,mode);
+          }
+        }
+      }
+      else //C02
+      {
+        // CO2 looks for least common value (so shortest list)
+        // if equal length, go for list0
+        if (size0<=size1)
+        {
+          // use size0 list
+          if (size0==1)
+          {
+            print("CO2 found:"+list0.get(0));
+            println(","+(co2=Integer.parseInt(list0.get(0),2)));
+            return;
+          }
+          else
+          {
+            SplitList sl = new SplitList(list0,++splitPos,mode);
+          }
+        }
+        else
+        {
+          // use size1 list
+          if (size1==1)
+          {
+            print("CO2 found:"+list1.get(0));
+            println(","+(co2=Integer.parseInt(list1.get(0),2)));
+
+            return;
+          }
+          else
+          {
+            SplitList sl = new SplitList(list1,++splitPos,mode);
+          }
+        }
+      }
+    }
+  }
 }
 
 public class BitProcessor
