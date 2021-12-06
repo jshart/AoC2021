@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day6_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day6_part1\\data\\myData");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -21,10 +21,10 @@ ArrayList<String> masterList = new ArrayList<String>();
 
 int bc=9;
 
-int[][] lFish= new int[2][bc];
+long[][] lFish= new long[2][bc];
 int cg=0; // current gen
 int ng=1; // next gen
-int days=17;
+int days=256;
 
 void setup() {
   size(200, 200);
@@ -50,15 +50,22 @@ void setup() {
   // iterate days...
   for (i=0;i<days;i++)
   {
+    
+    // lets reset the ng first, just to make sure we're starting with a clean slate;
+    for (j=0;j<bc;j++)
+    {
+      lFish[ng][j]=0;
+    }
+    
     // lets breed the fish first, any that are in the 6 bucket (7 days old) create a new fish in the 8 bucket
     lFish[ng][8]=lFish[cg][0];
     lFish[ng][6]=lFish[cg][0];
 
     
     // move all the other fish down a bucket
-    for (j=5;j<0;j--)
+    for (j=8;j>0;j--)
     {
-      lFish[ng][j-1]=lFish[cg][j];
+      lFish[ng][j-1]+=lFish[cg][j];
     }
     // switch counters;
     int t;
@@ -102,11 +109,14 @@ void bucketFish(String s)
 void printFishBucket(int g)
 {
   int i=0,l=0;
+  long total=0;
   
   for (i=0;i<bc;i++)
   {
-    println("Day "+i+"="+lFish[g][i]);
+    println("Day "+i+"="+lFish[0][i]+" "+lFish[1][i]);
+    total+=lFish[g][i];
   }
+  println("Total Fish:"+total);
 }
 
 
