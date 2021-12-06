@@ -57,7 +57,7 @@ void setup() {
       lFish[ng][j]=0;
     }
     
-    // lets breed the fish first, any that are in the 6 bucket (7 days old) create a new fish in the 8 bucket
+    // lets breed the fish first, any that are in the 0 bucket (7 days old) create a new fish in the 8 bucket, and then reset them to the 6 bucket
     lFish[ng][8]=lFish[cg][0];
     lFish[ng][6]=lFish[cg][0];
 
