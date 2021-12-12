@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input.txt");
+InputFile input = new InputFile("input3.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -48,6 +48,7 @@ void setup() {
   
   println("### GOOD PATHS FOUND="+goodPaths);
   println("Final list size was:"+cs.paths.size());
+  println("Small Caves:"+cs.howManySmallCaves());
 }
 
 void printMasterList()
@@ -233,6 +234,23 @@ public class CaveSystem
     }
     return(false);
   }
+  
+  int howManySmallCaves()
+  {
+    int i=0;
+    int l=caves.size();
+    
+    int smallCaves=0;
+    
+    for(i=0;i<l;i++)
+    {
+      if (caves.get(i).isSmallCave())
+      {
+        smallCaves++;
+      }
+    }
+    return(smallCaves);
+  }
 }
 
 public class Path
@@ -367,6 +385,15 @@ public class Cave
     {
       println("  \\_["+connectionList.get(i).name+"]");
     }
+  }
+  
+  public boolean isSmallCave()
+  {
+    if (name.length()<=2)
+    {
+      return(isSmall());
+    }
+    return(false);
   }
   
   public boolean isSmall()
