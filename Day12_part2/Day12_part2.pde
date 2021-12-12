@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day12_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day12_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -21,6 +21,9 @@ ArrayList<String> masterList = new ArrayList<String>();
 
 CaveSystem cs = new CaveSystem();
 int goodPaths=0;
+int totalGoodPaths=0;
+
+ArrayList<Path> masterPathList = new ArrayList<Path>();
 
 void setup() {
   size(200, 200);
@@ -42,11 +45,6 @@ void setup() {
   
   cs.printSystem();
   
-  cs.exploreSystem();
-  
-  cs.printPaths();
-  
-
   println("Small Caves:"+cs.howManySmallCaves());
   
   for (i=0;i<cs.caves.size();i++)
@@ -58,6 +56,19 @@ void setup() {
       
       println("==== ITERATION:"+i);
       cs.printSystem();
+          
+      cs.exploreSystem();
+      //cs.printPaths();
+
+      println("### GOOD PATHS FOUND="+goodPaths);
+      println("Final list size was:"+cs.paths.size());
+
+      totalGoodPaths+=goodPaths;
+      
+      for (j=0;j<cs.paths.size();j++)
+      {
+        masterPathList.add(cs.paths.get(j));
+      }
     }
     else
     {
@@ -65,8 +76,19 @@ void setup() {
     }
   }
   
-  println("### GOOD PATHS FOUND="+goodPaths);
-  println("Final list size was:"+cs.paths.size());
+  println("**** FINAL TOTAL **** "+totalGoodPaths);
+  
+  PrintWriter outFile = createWriter("output.txt");
+  
+  for (j=0;j<masterPathList.size();j++)
+  {
+    masterPathList.get(j).writePathToFile(outFile);
+  }
+  
+  outFile.flush();
+  outFile.close();
+  
+  println("RUN COMPLETES");
 }
 
 void printMasterList()
@@ -191,18 +213,12 @@ public class CaveSystem
       {
         tp=paths.get(i);
         
-        print("Exploring Path "+i+": ");
-        tp.printPath();
+        //print("Exploring Path "+i+": ");
+        //tp.printPath();
         
         // is this path already complete? (valid or otherwise)
         if (tp.complete==false)
         {
-          // its now going to be superceeded by the new longer paths we're going to create, so
-          // lets mark this as complete so we dont consider it any more (we can eventually prune it,
-          // but for now and to aid debugging we can simply mark that we're done with it by marking
-          // it as complete)
-          tp.complete=true;
-          
           // Lets find the last cave in the path
           lastCave=tp.chain.get(tp.chain.size()-1);
           
@@ -215,10 +231,22 @@ public class CaveSystem
           {
             paths.add(new Path(tp,lastCave.connectionList.get(j)));
           }
+          
+          // its now going to be superceeded by the new longer paths we're going to create, so
+          // lets mark this as complete so we dont consider it any more (we can eventually prune it,
+          // but for now and to aid debugging we can simply mark that we're done with it by marking
+          // it as complete)
+          tp.complete=true;
+          tp.validPath=false;
         }
       }
     }
+    
+    // Finalised - prune list and print results;
+    pruneList();
+    printPaths();
   }
+ 
   
   void pruneList()
   {
@@ -316,12 +344,12 @@ public class Path
     validPath=addCaveToPath(c);
   }
   
-  public boolean addCaveToPath(Cave p)
+  public boolean addCaveToPath(Cave c)
   {
     // is this the end of the path?
-    if (p.name.equals("end")==true)
+    if (c.name.equals("end")==true)
     {
-      chain.add(p);
+      chain.add(c);
       
       validPath=true;
       complete=true;
@@ -331,9 +359,9 @@ public class Path
       return(true);
     }
     
-    if (alreadyOnDoNotVisitList(p.name)==false)
+    if (alreadyOnDoNotVisitList(c)==false)
     {
-      chain.add(p);
+      chain.add(c);
       return(true);
     }
     
@@ -345,7 +373,7 @@ public class Path
     return(false);
   }
   
-  public boolean alreadyOnDoNotVisitList(String name)
+  public boolean alreadyOnDoNotVisitList(Cave c)
   {
     int i=0;
     int l=doNotRevistList.size();
@@ -353,17 +381,25 @@ public class Path
     // Is this cave already on the do not visit list?
     for (i=0;i<l;i++)
     {
-      if (doNotRevistList.get(i).equals(name)==true)
+      if (doNotRevistList.get(i).equals(c.name)==true)
       {
-        println("LOOP FOUND:"+doNotRevistList.get(i)+"=="+name);
-        return(true);
+        // is this loop excepted *once* for this run?
+        if (c.allowedSecondVisit==true && usedSecondVisit==false)
+        {
+          usedSecondVisit=true;
+        }
+        else
+        {
+          //println("LOOP FOUND:"+doNotRevistList.get(i)+"=="+c.name);
+          return(true);
+        }
       }
     }
     
     boolean addToList=true;
-    for (i=0;i<name.length();i++)
+    for (i=0;i<c.name.length();i++)
     {
-      if (Character.isUpperCase(name.charAt(i))==true)
+      if (Character.isUpperCase(c.name.charAt(i))==true)
       {
         addToList=false;
         break;
@@ -372,7 +408,7 @@ public class Path
     
     if (addToList==true)
     {
-      doNotRevistList.add(name);
+      doNotRevistList.add(c.name);
     }
     
     return(false);
@@ -388,6 +424,18 @@ public class Path
       print(chain.get(i).name+",");
     }
     println("valid="+validPath+" Complete="+complete);
+  }
+  
+  public void writePathToFile(PrintWriter p)
+  {
+    int i=0;
+    int l=chain.size();
+    
+    for (i=0;i<l;i++)
+    {
+      p.print(chain.get(i).name+",");
+    }
+    p.println("valid="+validPath+" Complete="+complete);
   }
 }
 
