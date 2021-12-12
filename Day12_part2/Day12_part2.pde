@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input3.txt");
+InputFile input = new InputFile("input.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -46,9 +46,27 @@ void setup() {
   
   cs.printPaths();
   
+
+  println("Small Caves:"+cs.howManySmallCaves());
+  
+  for (i=0;i<cs.caves.size();i++)
+  {
+    cs.resetSystem();
+    if (cs.caves.get(i).isSmallCave()==true)
+    {
+      cs.caves.get(i).allowedSecondVisit=true;
+      
+      println("==== ITERATION:"+i);
+      cs.printSystem();
+    }
+    else
+    {
+      println("==== SKIPPING ITERATION:"+i+" as large cave, start or end cave ["+cs.caves.get(i).name+"]");
+    }
+  }
+  
   println("### GOOD PATHS FOUND="+goodPaths);
   println("Final list size was:"+cs.paths.size());
-  println("Small Caves:"+cs.howManySmallCaves());
 }
 
 void printMasterList()
@@ -74,6 +92,20 @@ public class CaveSystem
   
   public CaveSystem()
   {
+  }
+  
+  public void resetSystem()
+  {
+    paths.clear();
+    
+    goodPaths=0;
+    
+    int i=0;
+    int l=caves.size();
+    for (i=0;i<l;i++)
+    {
+      caves.get(i).allowedSecondVisit=false;
+    }
   }
   
   void parseCave(String s)
@@ -364,6 +396,8 @@ public class Cave
 {
   String name;
   ArrayList<Cave> connectionList = new ArrayList<Cave>();
+  
+  Boolean allowedSecondVisit=false;
    
   public Cave(String s)
   {
@@ -377,7 +411,7 @@ public class Cave
   
   public void printCave()
   {
-    println("["+name+"]");
+    println("["+name+"]"+" allowed 2nd visit:"+allowedSecondVisit);
     
     int i=0;
     int l=connectionList.size();
@@ -412,6 +446,11 @@ public class Cave
   }
 }
 
+
+
+
+
+// TEMPLATE CODE AFTER HERE
 
 public class InputFile
 {
