@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day12_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day12_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input3.txt");
+InputFile input = new InputFile("input.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -47,6 +47,7 @@ void setup() {
   cs.printPaths();
   
   println("### GOOD PATHS FOUND="+goodPaths);
+  println("Final list size was:"+cs.paths.size());
 }
 
 void printMasterList()
@@ -147,6 +148,8 @@ public class CaveSystem
     while(pathsToExplore()==true)
     {
       println("*** Iterating ***");
+      pruneList();
+      
       // check each path to see if we can expand it...
       l=paths.size();
       
@@ -180,6 +183,22 @@ public class CaveSystem
             paths.add(new Path(tp,lastCave.connectionList.get(j)));
           }
         }
+      }
+    }
+  }
+  
+  void pruneList()
+  {
+    int i=0;
+    int l=paths.size();
+    Path p;
+    
+    for (i=l-1;i>=0;i--)
+    {
+      p=paths.get(i);
+      if (p.validPath==false && p.complete==true)
+      {
+        paths.remove(i);
       }
     }
   }
