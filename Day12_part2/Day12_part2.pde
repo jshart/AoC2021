@@ -242,6 +242,8 @@ public class Path
   boolean complete=false;
   ArrayList<String> doNotRevistList = new ArrayList<String>();
   
+  boolean usedSecondVisit=false;
+  
   // add an individual node (e.g. to init with start)
   public Path(Cave c)
   {
