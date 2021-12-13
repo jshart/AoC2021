@@ -94,6 +94,12 @@ void printMasterList()
 void draw() {
   int x=0,y=0;
   int total=0;
+ 
+  int i;
+  
+  i=currentInteration;
+  
+  background(0);
   
   for (x=0;x<maxX.value;x++)
   {
@@ -101,8 +107,13 @@ void draw() {
     {
       if (space[x][y]==1)
       {
-        println("drawing:"+x+","+y);
+        stroke(255,0,0);
+        fill(255,0,0);
         point(x,y);
+
+        stroke(255,255,255);
+        fill(255,255,255);
+        rect(x*i,y*i,i,i);
         total++;
       }
     }
@@ -133,6 +144,26 @@ void draw() {
         }
       }
       println();
+    }
+    
+    background(0);
+
+    for (x=0;x<maxX.value;x++)
+    {
+      for (y=0;y<maxY.value;y++)
+      {
+        if (space[x][y]==1)
+        {
+          stroke(255,0,0);
+          fill(255,0,0);
+          point(x,y);
+  
+          stroke(255,255,255);
+          fill(255,255,255);
+          rect(x*i,y*i,i,i);
+          total++;
+        }
+      }
     }
     
     noLoop();
