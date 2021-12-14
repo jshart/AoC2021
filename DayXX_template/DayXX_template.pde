@@ -55,7 +55,67 @@ void draw() {
 
 
 
+///////////////////////////////////////////////
+// AFTER THIS POINT ARE UTILITY FUNCTIONS ONLY
+///////////////////////////////////////////////
 
+public void OutputFile(String name)
+{
+  PrintWriter outFile = createWriter(name);
+  int j=0;
+  
+  for (j=0;j<masterList.size();j++)
+  {
+    outFile.print(masterList.get(j));
+  }
+  
+  outFile.flush();
+  outFile.close();
+}
+
+String diff(String s1, String s2)
+{
+  for (char c : s2.toCharArray())
+  {
+    s1=s1.replaceAll(String.valueOf(c), "");
+  }
+  return(s1);
+}
+
+boolean containsChar(String s1, char c)
+{
+  // for each char in s1, can we find input 'c'
+  for (char c1 : s1.toCharArray())
+  {
+    if (c1==c)
+    {
+      return(true);
+    }
+  }
+  return(false);
+}
+
+boolean containsChars(String s1, String s2)
+{
+  // for each char in s2, can we find it in s1
+  for (char c2 : s2.toCharArray())
+  {
+    if (containsChar(s1, c2)==false)
+    {
+      return(false);
+    }
+  }
+  return(true);
+}
+
+boolean containsCharsAnyOrder(String s1, String s2)
+{
+  if (s1.length()!=s2.length())
+  {
+    return(false);
+  }
+  return(containsChars(s1, s2));
+}
 
 public class InputFile
 {
@@ -124,14 +184,14 @@ public class BitMask
 
 public class Minimum
 {
-  int value=0;
+  long value=0;
   boolean set=false;
   
   public Minimum()
   {
   }
 
-  public void set(int v)
+  public void set(long v)
   {
     // Always set if this is the first time, but subsequently only set
     // if its less as we're trying to track the shortest distant. This
@@ -153,13 +213,13 @@ public class Minimum
 
 public class Maximum
 {
-  int value=0;
+  long value=0;
   
   public Maximum()
   {
   }
 
-  public void set(int v)
+  public void set(long v)
   {
 
     if (v>value)
