@@ -28,7 +28,10 @@ String inputStr = exampleStr;
 //String inputStr = myStr;
 
 LetterFrequencyTracker myLT;
-PairTracker myPT;
+PairTracker currentPT;
+PairTracker nextPT;
+PairTracker pt1;
+PairTracker pt2;
 
 
 void setup() {
@@ -60,10 +63,12 @@ void setup() {
   myLT = new LetterFrequencyTracker(inputStr);
   myLT.printTracker();
   
-  myPT = new PairTracker(inputStr);
-  myPT.lockInUpdates();
-
-  myPT.printPairs();
+  pt1 = new PairTracker(inputStr);
+  pt2 = new PairTracker(inputStr);
+  currentPT=pt1;
+  nextPT=pt2;
+  
+  currentPT.printPairs();
   
   println("*** END initial state dump");
   println();
@@ -79,19 +84,62 @@ void setup() {
       print("\\--RUNNING RULE:"+instructionList.get(j).inputPair);
       
       // create new pairs and remove any old pairs that match
-      matches = myPT.updateUsingInstruction(instructionList.get(j));
+      matches = updateUsingInstruction(instructionList.get(j));
       
       // capture new character added
       myLT.update(instructionList.get(j).insertChar,matches);
       
     }  
     println("iter:"+i+" locking in updates");
-    myPT.lockInUpdates();
-    myPT.printPairs();
+    currentPT.printPairs();
     println("***** END OF ITER *****");
+    
+    // Swap the trackers and get ready for the next update
+    swapPT();
   }
   myLT.printTracker();
   println("TOTAL:"+String.valueOf(myLT.max.value - myLT.min.value));
+}
+
+void swapPT()
+{
+  PairTracker t;
+  t=currentPT;
+  currentPT=nextPT;
+  nextPT=t;
+}
+
+public long updateUsingInstruction(Instruction ins)
+{
+  int i=0;
+  Pair t;
+  long childPairCount;
+  
+  // does this instruction match any existing pairs?
+  t=currentPT.findPair(ins.inputPair);
+  
+  if (t!=null) // rule matches a pair
+  {
+    println("--- RULE MATCHED:"+t.pair);
+    
+    // We should create the same number of new nodes.
+    childPairCount=t.currentCount;
+
+    // update pairs based on the output
+    for (i=0;i<2;i++)
+    {
+      nextPT.updatePair(ins.output[i],childPairCount);
+    }
+
+    // new pairs should have the same count as the pair we're running the instruction on
+    // as each existing pair that matches that instruction will generate new pairs
+    return(childPairCount);
+  }
+  else
+  {
+    println(" NO MATCH");
+  }
+  return(0);
 }
 
 void printMasterList()
@@ -125,6 +173,11 @@ public class PairTracker
     }
   }
   
+  public void clearTracker()
+  {
+    pairs.clear();
+  }
+  
   public Pair findPair(String s)
   {
     int l=pairs.size();
@@ -151,7 +204,7 @@ public class PairTracker
       pairs.add(t);
     }
     
-    t.updatedCount=c;
+    t.currentCount=c;
   }
   
   public void printPairs()
@@ -168,65 +221,25 @@ public class PairTracker
     }
   }
   
-  public void lockInUpdates()
-  {
-    int l=pairs.size();
-    int i=0;
-    Pair t=null;
+  //public void lockInUpdates()
+  //{
+  //  int l=pairs.size();
+  //  int i=0;
+  //  Pair t=null;
     
-    for (i=0;i<l;i++)
-    {
-      t=pairs.get(i);
-      t.lockedIn=true;
-      t.currentCount+=t.updatedCount;
-    }
-  }
-  
-  public long updateUsingInstruction(Instruction ins)
-  {
-    int i=0;
-    Pair t;
-    long childPairCount;
-    
-    // does this instruction match any existing pairs?
-    t=findPair(ins.inputPair);
-    
-    if (t!=null && t.lockedIn==true) // rule matches a pair
-    {
-      println("--- RULE MATCHED:"+t.pair);
-      
-      // We should create the same number of new nodes.
-      childPairCount=t.currentCount;
-
-      // update pairs based on the output
-      for (i=0;i<2;i++)
-      {
-        updatePair(ins.output[i],childPairCount);
-      }
-      
-      
-      // clear this node, as its now spawned children.
-      t.currentCount=0;
-      t.updatedCount=0;
-      
-      // new pairs should have the same count as the pair we're running the instruction on
-      // as each existing pair that matches that instruction will generate new pairs
-      return(childPairCount);
-    }
-    else
-    {
-      println(" NO MATCH");
-    }
-    return(0);
-  }
+  //  for (i=0;i<l;i++)
+  //  {
+  //    t=pairs.get(i);
+  //    t.lockedIn=true;
+  //    t.currentCount+=t.updatedCount;
+  //  }
+  //}
 }
 
 public class Pair
 {
   String pair;
   long currentCount=0;
-  long updatedCount=0;
-  boolean lockedIn=false;
   
   public Pair()
   {
@@ -239,7 +252,7 @@ public class Pair
   
   public void printPair()
   {
-    println("["+pair+"]="+currentCount+" updating by:"+updatedCount);
+    println("["+pair+"]="+currentCount);
   }
 }
 
