@@ -21,7 +21,9 @@ ArrayList<String> masterList = new ArrayList<String>();
 ArrayList<Instruction> instructionList = new ArrayList<Instruction>();
 
 String exampleStr = new String("NNCB");
+//String myStr = new String("PSVVKKCNBPNBBHNSFKBO");
 String myStr = new String("PSVVKKCNBPNBBHNSFKBO");
+
 
 //String inputStr = exampleStr;
 String inputStr = myStr;
