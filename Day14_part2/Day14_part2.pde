@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day14_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day14_part2\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -24,8 +24,8 @@ String exampleStr = new String("NNCB");
 String myStr = new String("PSVVKKCNBPNBBHNSFKBO");
 
 
-String inputStr = exampleStr;
-//String inputStr = myStr;
+//String inputStr = exampleStr;
+String inputStr = myStr;
 
 LetterFrequencyTracker myLT;
 PairTracker currentPT;
@@ -68,12 +68,14 @@ void setup() {
   currentPT=pt1;
   nextPT=pt2;
   
+  nextPT.clearTracker();
+  
   currentPT.printPairs();
   
   println("*** END initial state dump");
   println();
   
-  int steps=10;
+  int steps=40;
   long matches=0;
   for (i=0;i<steps;i++)
   {
@@ -81,7 +83,7 @@ void setup() {
     l=instructionList.size();
     for (j=0;j<l;j++)
     {
-      print("\\--RUNNING RULE:"+instructionList.get(j).inputPair);
+      //print("\\--RUNNING RULE:"+instructionList.get(j).inputPair);
       
       // create new pairs and remove any old pairs that match
       matches = updateUsingInstruction(instructionList.get(j));
@@ -90,14 +92,17 @@ void setup() {
       myLT.update(instructionList.get(j).insertChar,matches);
       
     }  
-    println("iter:"+i+" locking in updates");
     currentPT.printPairs();
-    println("***** END OF ITER *****");
+    println("***** END OF ITER "+i+"*****");
     
     // Swap the trackers and get ready for the next update
     swapPT();
+    nextPT.clearTracker();
   }
   myLT.printTracker();
+  myLT.updateMinMax();
+  println("MIN:"+myLT.min.value);
+  println("MAX:"+myLT.max.value);
   println("TOTAL:"+String.valueOf(myLT.max.value - myLT.min.value));
 }
 
@@ -120,7 +125,7 @@ public long updateUsingInstruction(Instruction ins)
   
   if (t!=null) // rule matches a pair
   {
-    println("--- RULE MATCHED:"+t.pair);
+    //println("--- RULE MATCHED:"+t.pair);
     
     // We should create the same number of new nodes.
     childPairCount=t.currentCount;
@@ -137,7 +142,7 @@ public long updateUsingInstruction(Instruction ins)
   }
   else
   {
-    println(" NO MATCH");
+    //println(" NO MATCH");
   }
   return(0);
 }
@@ -204,7 +209,7 @@ public class PairTracker
       pairs.add(t);
     }
     
-    t.currentCount=c;
+    t.currentCount+=c;
   }
   
   public void printPairs()
@@ -278,10 +283,20 @@ public class LetterFrequencyTracker
       
       // increment the occurance of this char
       totals[ci]++;
-      
-      // reset the min/max counters to reflect this updated value
-      max.set(totals[ci]);  
-      min.set(totals[ci]);
+    }
+  }
+  
+  void updateMinMax()
+  {
+    int i=0;
+
+    for (i=0;i<26;i++)
+    {
+      if (totals[i]>0)
+      {
+        max.set(totals[i]);  
+        min.set(totals[i]);
+      }
     }
   }
   
@@ -292,10 +307,6 @@ public class LetterFrequencyTracker
      
     // increment the occurance of this char
     totals[ci]+=count;
-      
-    // reset the min/max counters to reflect this updated value
-    max.set(totals[ci]);  
-    min.set(totals[ci]);
   }
   
   void printTracker()
@@ -389,12 +400,12 @@ public class Instruction
     output[0]=String.valueOf(inputPair.charAt(0))+String.valueOf(insertChar);
     
     // input char + right char == right pair
-    output[1]=String.valueOf(insertChar)+String.valueOf(inputPair.charAt(0));
+    output[1]=String.valueOf(insertChar)+String.valueOf(inputPair.charAt(1));
   }
   
   void printInstruction()
   {
-    println("Ins:["+inputPair+"] insert="+insertChar+" Result:"+newStr);
+    println("Ins:["+inputPair+"] insert="+insertChar);
   } 
 }
 
