@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day15_part1\\data\\mydata");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day15_part2\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -28,13 +28,13 @@ JVector[][] map;
 int maxX=0;
 int maxY=0;
 int rotation=0;
-int sf=8;
+int sf=1;
 
 void setup() {
   size(800, 800);
   background(0);
   stroke(255);
-  frameRate(40);
+  frameRate(120);
 
   System.out.println("Working Directory = " + System.getProperty("user.dir"));
   println();
@@ -42,25 +42,48 @@ void setup() {
   
   int i=0,j=0;
 
-  maxX=input.lines.size();
-  maxY=input.lines.get(0).length();
+  int mX=input.lines.size();
+  int mY=input.lines.get(0).length();
+  maxX=mX*5;
+  maxY=mY*5;
+  
 
   map = new JVector[maxX][maxY];
   
   JVector t;
   
   // Loop through each input item...
-  for (i=0;i<maxX;i++)
+  
+  int a=0,b=0;
+  for (a=0;a<5;a++)
   {
-    for (j=0;j<maxY;j++)
+    for (b=0;b<5;b++)
     {
-      t=new JVector(i,j);
-      
-      t.cost=Character.getNumericValue(input.lines.get(i).charAt(j));
-      
-      map[i][j]=t;
+      for (i=0;i<mX;i++)
+      {
+        for (j=0;j<mY;j++)
+        {
+          t=new JVector(i+(a*mX),j+(b*mY));
+          
+          t.cost=Character.getNumericValue(input.lines.get(i).charAt(j))+a+b;
+          t.cost=(t.cost>9)?(t.cost-9):(t.cost);
+          
+          map[i+(a*mX)][j+(b*mY)]=t;
+        }
+      }
     }
   }
+  
+  println("Dimensions:"+maxX+","+maxY);
+    
+  //for (i=0;i<maxX;i++)
+  //{
+  //  for (j=0;j<maxY;j++)
+  //  {
+  //    print(map[i][j].cost);
+  //  }
+  //  println();
+  //}
   
   //for (i=0;i<maxX;i++)
   //{
@@ -70,7 +93,7 @@ void setup() {
   //  }
   //  println();
   //}
-  println("Dimensions:"+maxX+","+maxY);
+
 
   neighbours[0] = new JVector(-1,0);
   neighbours[1] = new JVector(1,0);
@@ -78,6 +101,27 @@ void setup() {
   neighbours[3] = new JVector(0,1);
  
   f=new Frontier(new JVector(0,0));
+  
+  
+  JVector result;
+  
+  int iterations=0;
+  do
+  {
+    result=f.expandFrontier();
+    iterations++;
+    
+    if (iterations%100==0)
+    {
+      print("*");
+    }
+  }
+  while (result==null);
+  
+  
+  print("RETURNED VECTOR:"+result.x+","+result.y+" w="+result.w);
+  print("Weight at locatin:"+result.w);
+
 }
 
 void printMasterList()
@@ -91,20 +135,23 @@ void printMasterList()
 
 
 
-int iterations=500;
+int iterations=100;
 
 void draw() {  
   int x=0,y=0;
 
-  background(0);
+  noLoop();
 
-  
-  // Draw the map...
-  for (x=0;x<maxX;x++)
+  if (iterations%100==0)
   {
-    for (y=0;y<maxY;y++)
+    background(0);
+    // Draw the map...
+    for (x=0;x<maxX;x++)
     {
-      map[x][y].drawVectorLocation();
+      for (y=0;y<maxY;y++)
+      {
+        map[x][y].drawVectorLocation();
+      }
     }
   }
   
@@ -112,13 +159,17 @@ void draw() {
   JVector result;
   
   result=f.expandFrontier();
-  f.drawFrontier();
+  
+  if (iterations%100==0)
+  {
+    f.drawFrontier();
+  }
   //f.drawVectorConnections();
   //f.printFrontierWeights(f.cFrontier);
 
   //print("*");
   
-  iterations--;
+  iterations++;
   //if (iterations==0)
   if (result!=null)
   {
