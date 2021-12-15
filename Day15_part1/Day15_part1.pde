@@ -77,7 +77,7 @@ void setup() {
   neighbours[2] = new JVector(0,-1);
   neighbours[3] = new JVector(0,1);
  
-  f=new Frontier(new JVector(50,50));
+  f=new Frontier(new JVector(0,0));
 }
 
 void printMasterList()
@@ -91,7 +91,7 @@ void printMasterList()
 
 
 
-int iterations=10;
+int iterations=500;
 
 void draw() {  
   int x=0,y=0;
@@ -113,13 +113,14 @@ void draw() {
   
   result=f.expandFrontier();
   f.drawFrontier();
-  //f.drawVectorConnections();
-  f.printFrontierWeights(f.cFrontier);
+  f.drawVectorConnections();
+  //f.printFrontierWeights(f.cFrontier);
 
   print("*");
   
   iterations--;
-  if (iterations==0)
+  //if (iterations==0)
+  if (result!=null)
   {
     noLoop();
     f.printFrontierWeights(f.cFrontier);
@@ -197,10 +198,12 @@ public class Frontier
     int w;
     
         
-    for (i=0;i<l;i++)
-    {
+    //for (i=0;i<l;i++)
+    //{
 //println("walking frontier "+i);
-      currentV=cFrontier.get(i);
+      currentV=cFrontier.get(0);
+      cFrontier.remove(0);
+      
       x=currentV.x;
       y=currentV.y;
       
@@ -230,15 +233,15 @@ public class Frontier
             nextV.w=w;
             currentV.predecessor=nextV;
 
-            addOrderedByWeight(nFrontier,nextV);
+            addOrderedByWeight(cFrontier,nextV);
           }
         }
       }
    
-    }
+    //}
     
-    swapFLists();
-    nFrontier.clear();
+    //swapFLists();
+    //nFrontier.clear();
     
     return(null);
   }
@@ -269,7 +272,6 @@ public class Frontier
         return;
       }
     }
-    println("adding at end:"+t.w);
     n.add(t);
   }
   
