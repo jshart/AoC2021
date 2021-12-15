@@ -28,10 +28,10 @@ JVector[][] map;
 int maxX=0;
 int maxY=0;
 int rotation=0;
-int sf=4;
+int sf=8;
 
 void setup() {
-  size(400, 400);
+  size(800, 800);
   background(0);
   stroke(255);
   frameRate(40);
@@ -113,10 +113,10 @@ void draw() {
   
   result=f.expandFrontier();
   f.drawFrontier();
-  f.drawVectorConnections();
+  //f.drawVectorConnections();
   //f.printFrontierWeights(f.cFrontier);
 
-  print("*");
+  //print("*");
   
   iterations--;
   //if (iterations==0)
@@ -136,10 +136,9 @@ void draw() {
 public class Frontier
 {
   JVector startLoc;
-  ArrayList<JVector> p1 = new ArrayList<JVector>();
-  ArrayList<JVector> p2 = new ArrayList<JVector>();
-  ArrayList<JVector> cFrontier=p1;
-  ArrayList<JVector> nFrontier=p2;
+
+  ArrayList<JVector> cFrontier= new ArrayList<JVector>();
+
   
   public Frontier(JVector s)
   {
@@ -190,67 +189,70 @@ public class Frontier
   public JVector expandFrontier()
   {
     int i=0,j=0;
-    int l=cFrontier.size();
     JVector currentV;
     int x=0,y=0;
     JVector nextV;
     int dx=0,dy=0;
-    int w;
-    
-        
-    //for (i=0;i<l;i++)
-    //{
+    int w;        
+
 //println("walking frontier "+i);
-      currentV=cFrontier.get(0);
-      cFrontier.remove(0);
-      
-      x=currentV.x;
-      y=currentV.y;
-      
-      if (x==maxX-1 && y==maxY-1)
-      {
-        return(currentV);
-      }
+
+    // grab the head of the list - its the lowest cost
+    currentV=cFrontier.get(0);
+    cFrontier.remove(0);
+    
+    x=currentV.x;
+    y=currentV.y;
+    
+
 //println("inside map");
+    
+    // Check each neighbour to see if we can expand into it
+    for (j=0;j<neighbours.length;j++)
+    {
+      // work out the delta to this neighbour
+      dx=x+neighbours[j].x;
+      dy=y+neighbours[j].y; 
       
-      // Check each neighbour to see if we can expand into it
-      for (j=0;j<neighbours.length;j++)
+
+      
+      // is this within the map?
+      if (isValid(dx,dy)==true)
       {
-        // work out the delta to this neighbour
-        dx=x+neighbours[j].x;
-        dy=y+neighbours[j].y; 
+        // get the next node to check
+        nextV=map[dx][dy];
         
-        // is this within the map?
-        if (isValid(dx,dy)==true)
+        // Calculate new weight for this path
+        w=currentV.w+nextV.cost;
+        
+        // We've hit our target, return the value
+        if (dx==maxX-1 && dy==maxY-1)
         {
-          nextV=map[dx][dy];
-          
-          // Calculate new weight for this path
-          w=currentV.w+nextV.cost;
-          
-          if (betterMatch(dx,dy,w)==true)
+          map[dx][dy].w=w;
+          return(map[dx][dy]);
+        }
+        
+        if (betterMatch(dx,dy,w)==true)
+        {
+          if (addOrderedByWeight(cFrontier,nextV,w)==true)
           {
             nextV.w=w;
             currentV.predecessor=nextV;
-
-            addOrderedByWeight(cFrontier,nextV);
           }
         }
       }
-   
-    //}
-    
-    //swapFLists();
-    //nFrontier.clear();
+    }
     
     return(null);
   }
 
-  public void addOrderedByWeight(ArrayList<JVector> n, JVector t)
+  public boolean addOrderedByWeight(ArrayList<JVector> n, JVector t, int w)
   {
     int i=0;
     int l=n.size();
     JVector v;
+
+//print("Trying to add:"+t.x+","+t.y+","+w);
 
     // check each frontier element in turn, looking for a space to
     // insert this new one
@@ -258,21 +260,28 @@ public class Frontier
     {
       v=n.get(i);
 
-      // this current element has a weight higher than this one
-      // so lets add this one before it.
-      if (v.w>t.w)
+      // if this is the same as or worse than an existing entry - skip it.
+      // we've reached the same location using the same or higher cost, so 
+      // this path cant be any better than the one that already
+      // was found.
+      if (w>=v.w && v.x==t.x && v.y==t.y)
       {
-        n.add(i,t);
-        return;
+//println(" not added");
+        return(false);
       }
       
-      // if this is the same as an existing entry - skip it.
-      if (v.w==t.w && v.x==t.x && v.y==t.y)
+      // this current element has a weight higher than this one
+      // so lets add this one before it.
+      if (v.w>w)
       {
-        return;
+//println(" location found at:"+i);
+        n.add(i,t);
+        return(true);
       }
     }
+//println(" location found at END:"+i);
     n.add(t);
+    return(true);
   }
   
   public boolean isValid(int x, int y)
@@ -287,7 +296,6 @@ public class Frontier
   public boolean betterMatch(int x, int y, int newW)
   {
     JVector v;
-    
 
     v=map[x][y];
     
@@ -308,13 +316,6 @@ public class Frontier
     return(false);
   }
   
-  void swapFLists()
-  {
-    ArrayList<JVector> t;
-    t=cFrontier;
-    cFrontier=nFrontier;
-    nFrontier=t;
-  }
   
   void printFrontierWeights(ArrayList<JVector> f)
   {
@@ -325,7 +326,7 @@ public class Frontier
     for (i=0;i<l;i++)
     {
       v=f.get(i);
-      println(i+" "+v.x+","+v.y+" w="+ v.w);
+      println(i+": ["+v.x+","+v.y+"].w="+ v.w);
     }
     println("TOTAL F's:"+l);
   }
