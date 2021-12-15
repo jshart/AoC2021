@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day15_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day15_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -19,19 +19,23 @@ InputFile input = new InputFile("input.txt");
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
-JVector[] neighbours = new JVector[4];
-
+ArrayList<Path> p1 = new ArrayList<Path>();
+ArrayList<Path> p2 = new ArrayList<Path>();
+ArrayList<Path> currentPathList=p1;
+ArrayList<Path> nextPathList=p2;
+Path reference;
+long referenceRisk=0;
 
 Frontier f;
 
-JVector[][] map;
+int[][] map;
 int maxX=0;
 int maxY=0;
 int rotation=0;
-int sf=8;
+int sf=4;
 
 void setup() {
-  size(800, 800);
+  size(400, 400);
   background(0);
   stroke(255);
   frameRate(40);
@@ -45,20 +49,15 @@ void setup() {
   maxX=input.lines.size();
   maxY=input.lines.get(0).length();
 
-  map = new JVector[maxX][maxY];
-  
-  JVector t;
+  map = new int[maxX][maxY];
+  reference = new Path();
   
   // Loop through each input item...
   for (i=0;i<maxX;i++)
   {
     for (j=0;j<maxY;j++)
     {
-      t=new JVector(i,j);
-      
-      t.cost=Character.getNumericValue(input.lines.get(i).charAt(j));
-      
-      map[i][j]=t;
+      map[i][j]=Character.getNumericValue(input.lines.get(i).charAt(j));
     }
   }
   
@@ -71,13 +70,16 @@ void setup() {
   //  println();
   //}
   println("Dimensions:"+maxX+","+maxY);
-
-  neighbours[0] = new JVector(-1,0);
-  neighbours[1] = new JVector(1,0);
-  neighbours[2] = new JVector(0,-1);
-  neighbours[3] = new JVector(0,1);
+  
+  reference.generateReferencePath();
+  referenceRisk=reference.risk();
+  
+  // init the pathlist with one path...
+  currentPathList.add(new Path());
+  
+  println("Reference Total:"+reference.risk());
  
-  f=new Frontier(new JVector(0,0));
+  f=new Frontier(new PVector(0,0));
 }
 
 void printMasterList()
@@ -89,12 +91,19 @@ void printMasterList()
   }
 }
 
+void swapPathLists()
+{
+  ArrayList<Path> t;
+  t=currentPathList;
+  currentPathList=nextPathList;
+  nextPathList=t;
+}
 
-
-int iterations=500;
+int iterations=200;
 
 void draw() {  
   int x=0,y=0;
+  int c;
 
   background(0);
 
@@ -104,67 +113,124 @@ void draw() {
   {
     for (y=0;y<maxY;y++)
     {
-      map[x][y].drawVectorLocation();
+      c=255/map[x][y];
+      stroke(c);
+      fill(c);
+      rect(x*sf,y*sf,sf,sf);
     }
   }
   
+  reference.drawPath(color(255,0,0));
   
-  JVector result;
+  PVector result;
   
   result=f.expandFrontier();
   f.drawFrontier();
-  //f.drawVectorConnections();
-  //f.printFrontierWeights(f.cFrontier);
-
-  //print("*");
+  f.drawVectors();
   
-  iterations--;
+  //iterations--;
   //if (iterations==0)
   if (result!=null)
   {
     noLoop();
-    f.printFrontierWeights(f.cFrontier);
+    f.printFrontierWeights();
+    
+    print("RETURNED VECTOR:"+result.x+","+result.y+" w="+result.z);
+    print("Weight at locatin:"+f.weightOfMapFromV(result));
   }
-  if (result!=null)
-  {
   
-    print("RETURNED VECTOR:"+result.x+","+result.y+" w="+result.w);
-    print("Weight at locatin:"+result.w);
-  }
+  //// draw all the paths so far
+  //int l=currentPathList.size();
+  //int i=0;
+  //PVector lastStep;
+  //Path p;
+  //color col=color(0,255,0);
+  //for (i=0;i<l;i++)
+  //{
+  //  p=currentPathList.get(i);
+  //  p.drawPath(col);
+    
+  //  // check each cardinal direction from the last node to see if this is a valid
+  //  // pathing location. if it is add a new path to the next list
+  //  lastStep=p.steps.get(p.steps.size()-1);
+  //  x=(int)lastStep.x;
+  //  y=(int)lastStep.y;
+    
+  //  if (p.risk()<referenceRisk)
+  //  {
+  //    // check up
+  //    if (p.isValid(x-1,y)>0)
+  //    {
+  //      nextPathList.add(new Path(p,new PVector(x-1,y)));
+  //    }
+  //    // check down
+  //    if (p.isValid(x+1,y)>0)
+  //    {
+  //      nextPathList.add(new Path(p,new PVector(x+1,y)));
+  //    }
+  //    // check left
+  //    if (p.isValid(x,y-1)>0)
+  //    {
+  //      nextPathList.add(new Path(p,new PVector(x,y-1)));
+  //    }
+  //    // check right
+  //    if (p.isValid(x,y+1)>0)
+  //    {
+  //      nextPathList.add(new Path(p,new PVector(x,y+1)));
+  //    }
+  //  }
+  //}
+  //println("ACTIVE PATHS:"+i);
+  
+  //swapPathLists();
+  //nextPathList.clear();
 }
 
 public class Frontier
 {
-  JVector startLoc;
-
-  ArrayList<JVector> cFrontier= new ArrayList<JVector>();
-
+  public PVector[][] pMap;
+  PVector startLoc;
+  ArrayList<PVector> p1 = new ArrayList<PVector>();
+  ArrayList<PVector> p2 = new ArrayList<PVector>();
+  ArrayList<PVector> cFrontier=p1;
+  ArrayList<PVector> nFrontier=p2;
   
-  public Frontier(JVector s)
+  public Frontier(PVector s)
   {
-    startLoc=s;    
+    startLoc=s;
+    pMap = new PVector[maxX][maxY];
+    
     cFrontier.add(startLoc);
     visitLoc(startLoc,startLoc);
   }
   
-  public void visitLoc(JVector t, JVector f)
+  public void visitLoc(PVector t, PVector f)
   {
-    map[t.x][t.y].predecessor=f; 
+    pMap[(int)t.x][(int)t.y]=f; 
   }
   
-  public void drawVectorConnections()
+  public void drawVectors()
   {
     int x=0,y=0;
-
+    PVector v;
+    
+    int sx=0,sy=0,ex=0,ey=0;
+    
     stroke(0,255,255);
     fill(0,255,255);
     for (x=0;x<maxX;x++)
     {
       for (y=0;y<maxY;y++)
       {
-        if (map[x][y]!=null)
+        if (pMap[x][y]!=null)
         {
-          map[x][y].drawVectorConnection();
+          sx=(x*sf)+sf/2;
+          sy=(y*sf)+sf/2;
+          
+          v=pMap[x][y];
+          ex=(((int)v.x)*sf)+sf/2;
+          ey=(((int)v.y)*sf)+sf/2;
+          line(sx,sy,ex,ey);
         }
       }
     }
@@ -174,114 +240,178 @@ public class Frontier
   {
     int i=0;
     int l=cFrontier.size();
-    JVector v;
+    PVector v;
+    int x=0,y=0;
     
     for (i=0;i<l;i++)
     {
       v=cFrontier.get(i);
-
+      x=(int)v.x;
+      y=(int)v.y;
       stroke(0,0,255);
       fill(0,0,255);
-      rect(v.x*sf,v.y*sf,sf,sf);
+      rect(x*sf,y*sf,sf,sf);
     }
   }
   
-  public JVector expandFrontier()
+  public PVector expandFrontier()
   {
-    int i=0,j=0;
-    JVector currentV;
+    int i=0;
+    int l=cFrontier.size();
+    PVector currentV;
     int x=0,y=0;
-    JVector nextV;
+    PVector nextV;
+    int w;
     int dx=0,dy=0;
-    int w;        
-
-//println("walking frontier "+i);
-
-    // grab the head of the list - its the lowest cost
-    currentV=cFrontier.get(0);
-    cFrontier.remove(0);
     
-    x=currentV.x;
-    y=currentV.y;
-    
-
-//println("inside map");
-    
-    // Check each neighbour to see if we can expand into it
-    for (j=0;j<neighbours.length;j++)
+    for (i=0;i<l;i++)
     {
-      // work out the delta to this neighbour
-      dx=x+neighbours[j].x;
-      dy=y+neighbours[j].y; 
+      currentV=cFrontier.get(i);
+      x=(int)currentV.x;
+      y=(int)currentV.y;
       
-
+      if (x==maxX-1 && y==maxY-1)
+      {
+        return(currentV);
+      }
       
-      // is this within the map?
+      // check up
+      dx=x-1;
+      dy=y; 
       if (isValid(dx,dy)==true)
       {
-        // get the next node to check
-        nextV=map[dx][dy];
+        if (pMap[dx][dy]!=null)
+        {
+          nextV=pMap[dx][dy];
+        }
+        else
+        {
+          nextV=new PVector(dx,dy);   
+        }
         
         // Calculate new weight for this path
-        w=currentV.w+nextV.cost;
-        
-        // We've hit our target, return the value
-        if (dx==maxX-1 && dy==maxY-1)
-        {
-          map[dx][dy].w=w;
-          return(map[dx][dy]);
-        }
+        w=(int)currentV.z;
+        w+=weightOfMapFromV(nextV);
+        nextV.z=w;
         
         if (betterMatch(dx,dy,w)==true)
         {
-          if (addOrderedByWeight(cFrontier,nextV,w)==true)
-          {
-            nextV.w=w;
-            currentV.predecessor=nextV;
-          }
+          addBasedOnWeight(nFrontier,nextV,w);
+          visitLoc(nextV,currentV);
         }
       }
+      
+      // check down
+      dx=x+1;
+      dy=y; 
+      if (isValid(dx,dy)==true)
+      {
+        if (pMap[dx][dy]!=null)
+        {
+          nextV=pMap[dx][dy];
+        }
+        else
+        {
+          nextV=new PVector(dx,dy);   
+        }
+        
+        // Calculate new weight for this path
+        w=(int)currentV.z;
+        w+=weightOfMapFromV(nextV);
+        nextV.z=w;
+        
+        if (betterMatch(dx,dy,w)==true)
+        {
+          addBasedOnWeight(nFrontier,nextV,w);
+          visitLoc(nextV,currentV);
+        }
+      }
+      
+      // check left
+      dx=x;
+      dy=y-1;
+      if (isValid(dx,dy)==true)
+      {
+        if (pMap[dx][dy]!=null)
+        {
+          nextV=pMap[dx][dy];
+        }
+        else
+        {
+          nextV=new PVector(dx,dy);   
+        }
+        
+        // Calculate new weight for this path
+        w=(int)currentV.z;
+        w+=weightOfMapFromV(nextV);
+        nextV.z=w;
+        
+        if (betterMatch(dx,dy,w)==true)
+        {
+          addBasedOnWeight(nFrontier,nextV,w);
+          visitLoc(nextV,currentV);
+        }
+      }
+      
+      // check right
+      dx=x;
+      dy=y+1;
+      if (isValid(dx,dy)==true)
+      {
+        if (pMap[dx][dy]!=null)
+        {
+          nextV=pMap[dx][dy];
+        }
+        else
+        {
+          nextV=new PVector(dx,dy);   
+        }
+        
+        // Calculate new weight for this path
+        w=(int)currentV.z;
+        w+=weightOfMapFromV(nextV);
+        nextV.z=w;
+        
+        if (betterMatch(dx,dy,w)==true)
+        {
+          addBasedOnWeight(nFrontier,nextV,w);
+          visitLoc(nextV,currentV);
+        }
+      }
+   
     }
+    
+    swapFLists();
+    nFrontier.clear();
     
     return(null);
   }
 
-  public boolean addOrderedByWeight(ArrayList<JVector> n, JVector t, int w)
+  public int weightOfMapFromV(PVector v)
+  {
+    int x=0,y=0;
+    x=(int)v.x;
+    y=(int)v.y;
+    return(map[x][y]);
+  }
+
+  public void addBasedOnWeight(ArrayList<PVector> n, PVector t, int w)
   {
     int i=0;
     int l=n.size();
-    JVector v;
+    PVector v;
 
-//print("Trying to add:"+t.x+","+t.y+","+w);
-
-    // check each frontier element in turn, looking for a space to
-    // insert this new one
     for (i=0;i<l;i++)
     {
       v=n.get(i);
 
-      // if this is the same as or worse than an existing entry - skip it.
-      // we've reached the same location using the same or higher cost, so 
-      // this path cant be any better than the one that already
-      // was found.
-      if (w>=v.w && v.x==t.x && v.y==t.y)
+      if (v.z>w)
       {
-//println(" not added");
-        return(false);
-      }
-      
-      // this current element has a weight higher than this one
-      // so lets add this one before it.
-      if (v.w>w)
-      {
-//println(" location found at:"+i);
         n.add(i,t);
-        return(true);
+        return;
       }
     }
-//println(" location found at END:"+i);
     n.add(t);
-    return(true);
   }
   
   public boolean isValid(int x, int y)
@@ -295,91 +425,196 @@ public class Frontier
  
   public boolean betterMatch(int x, int y, int newW)
   {
-    JVector v;
-
-    v=map[x][y];
+    PVector v;
+    int currentWeight;
     
-    // First time visiting this node?
-    if (v.predecessor==null)
+    if (pMap[x][y]!=null)
     {
-      return(true);
+      v=pMap[x][y];
+      currentWeight=(int)v.z;
+      if (newW<currentWeight)
+      {
+        return(true);
+      }
+      else
+      {
+        return(false);
+      }
     }
-
-    // Been here already, is this new path shorter?
-    // if so then override.
-    if (newW<v.w)
-    {
-      return(true);
-    }
-    
-    // All other conditions mean we shouldnt add the node
-    return(false);
+    return(true);
   }
   
-  
-  void printFrontierWeights(ArrayList<JVector> f)
+  void swapFLists()
   {
-    int l=f.size();
-    JVector v;
-
+    ArrayList<PVector> t;
+    t=cFrontier;
+    cFrontier=nFrontier;
+    nFrontier=t;
+  }
+  
+  void printFrontierWeights()
+  {
+    int l=cFrontier.size();
+    PVector v;
+    int x=0,y=0;
     int i=0;
     for (i=0;i<l;i++)
     {
-      v=f.get(i);
-      println(i+": ["+v.x+","+v.y+"].w="+ v.w);
+      v=cFrontier.get(i);
+      x=(int)v.x;
+      y=(int)v.y;
+      println(i+" w="+ map[x][(y)] );
     }
-    println("TOTAL F's:"+l);
   }
 }
 
-
-
-public class JVector
+public class Path
 {
-  int x=0;
-  int y=0;
-  int w=0;
-  int cost=0;
-  JVector predecessor;
+  ArrayList<PVector> steps = new ArrayList<PVector>();
+  PVector start = new PVector(0,0);
+  PVector end = new PVector(maxX-1,maxY-1);
+  boolean[][] mask = new boolean[maxX][maxY];
   
-  public JVector()
+  boolean active=true;
+  
+  public Path()
   {
+    initMask();
+    steps.add(start);
   }
   
-  public JVector(int x_, int y_)
+  public void initMask()
   {
-    x=x_;
-    y=y_;
-  }
-  
-  public void drawVectorConnection()
-  {
-    int sx=0,sy=0,ex=0,ey=0;
-    
-    if (predecessor==null)
+    int x=0,y=0;
+    // Loop through each input item...
+    for (x=0;x<maxX;x++)
     {
-      return;
+      for (y=0;y<maxY;y++)
+      {
+        mask[x][y]=false;
+      }
+    }
+  }
+  
+  public Path(Path p, PVector s)
+  {
+    int i=0;
+    int l=p.steps.size();
+    
+    // copy everything we need from the parent path
+    
+    copyMask(p);
+    
+    for (i=0;i<l;i++)
+    {
+      steps.add(p.steps.get(i));
     }
     
-    sx=((predecessor.x)*sf)+sf/2;
-    sy=((predecessor.y)*sf)+sf/2;
-    
-    ex=(x*sf)+sf/2;
-    ey=(y*sf)+sf/2;
-    
-    line(sx,sy,ex,ey);
-    circle(ex,ey,sf/2);
+    // add the extra location
+    addStep(s);
   }
   
-  public void drawVectorLocation()
+  public void copyMask(Path p)
   {
-    int c;
-    c=255/map[x][y].cost;
-    stroke(c);
-    fill(c);
-    rect(x*sf,y*sf,sf,sf);
+    int x=0,y=0;
+    // Loop through each input item...
+    for (x=0;x<maxX;x++)
+    {
+      for (y=0;y<maxY;y++)
+      {
+        mask[x][y]=p.mask[x][y];
+      }
+    }
+  }
+  
+  public void generateReferencePath()
+  {
+    int i=0;
+    PVector t;
+    for (i=1;i<maxX;i++)
+    {
+      t=new PVector(i,i);
+      addStep(t);
+    }
+  }
+  
+  public void addStep(PVector step)
+  {
+    steps.add(step);
+    mask[(int)step.x][(int)step.y]=true;
+  }
+  
+  public void drawPath(color c)
+  {
+    int l=steps.size();
+    int i=0;
+    PVector t;
+    for (i=0;i<l;i++)
+    {
+      t=steps.get(i);
+ 
+      stroke(c);
+      fill(c);
+      rect(t.x*sf,t.y*sf,sf,sf);
+    }
+  }
+  
+  public long risk()
+  {
+    int l=steps.size();
+    int i=0;
+    PVector t;
+    long total=0;
+    
+    for (i=0;i<l;i++)
+    {
+      t=steps.get(i);
+      total+=map[(int)t.x][(int)t.y];
+    }
+    return(total);
+  } 
+  
+  public int isValid(int x, int y)
+  {    
+    if (x<0 || y<0 || x>=maxX || y>=maxY)
+    {
+      return(-1);
+    }
+    
+    if (mask[x][y]==true)
+    {
+      return(-3);
+    }
+    return(1);
   }
 }
+
+//void draw() {  
+//  int x=0,y=0;
+//  int c;
+//  int sf=2;
+  
+//  translate(200, 200, -200);
+
+//  background(0);
+//  //rotateY(rotation++);
+//  rotateX(radians(rotation++));
+  
+//  // Loop through each input item...
+//  for (x=0;x<maxX;x++)
+//  {
+//    for (y=0;y<maxY;y++)
+//    {
+//      c=255/map[x][y];
+//      stroke(c);
+//      fill(c);
+//      translate(0,sf,0);
+//      box(sf,sf,map[x][y]*sf);
+//    }
+//    translate(sf,-(sf*(y-1)),0);
+//  }
+//}
+
 
 
 ///////////////////////////////////////////////
