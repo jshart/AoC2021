@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day16_part2\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day16_part2\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("p2input3.txt");
+InputFile input = new InputFile("input.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -91,8 +91,9 @@ void setup() {
   //println("TOTAL:"+total);
   println("*** EXITED ***");
   
-  parsedPacket.printPacket(1);
   println("FINAL RESULT:"+parsedPacket.solve());
+  parsedPacket.printPacket(1);
+  println("CHECKSUM:"+parsedPacket.versionCheckSum());
 }
 
 public int processPacket(String b, SubPacket parentPacket, int d, int findPacketCount)
@@ -334,6 +335,9 @@ public class SubPacket
   PStates s;
   String contents;
   ArrayList<SubPacket> subs = new ArrayList<SubPacket>();
+  ArrayList<Long> results = new ArrayList<Long>();
+  long finalResult=0;
+
   
   boolean resolved=false;
   long output=0;
@@ -342,11 +346,20 @@ public class SubPacket
   {
   }
   
+  public long versionCheckSum()
+  {
+    int i=0;
+    long total=version;
+    for (i=0;i<subs.size();i++)
+    {
+      total+=subs.get(i).versionCheckSum();
+    }
+    return(total);
+  }
+  
   public long solve()
   {
-    ArrayList<Long> results = new ArrayList<Long>();
     int i=0;
-    long finalResult=0;
     Minimum min = new Minimum();
     Maximum max = new Maximum();
     
@@ -390,13 +403,13 @@ public class SubPacket
         finalResult=literal;
         break;
       case 5: // GT
-        finalResult=results.get(0)>results.get(1)?1:0;
+        finalResult=(results.get(0)>results.get(1)?1:0);
         break;
       case 6: // LT
-        finalResult=results.get(0)<results.get(1)?1:0;
+        finalResult=(results.get(0)<results.get(1)?1:0);
         break;
       case 7: // EQ
-        finalResult=results.get(0)==results.get(1)?1:0;
+        finalResult=(results.get(0).equals(results.get(1))?1:0);
         break;
     }
     
@@ -409,12 +422,23 @@ public class SubPacket
     int i=0;
     for (i=0;i<d;i++)
     {
-      p+=" ";
+      p+="| ";
     }
     p+="\\_";
     
-    println(p+"T:"+type+" V:"+version+" L:"+literal+" SS:"+subs.size()+" Op:"+operatorName(type));
+    println(p+"T:"+type+" V:"+version+" L:"+literal+" SS:"+subs.size()+" Op:"+operatorName(type)+" FR:"+finalResult);
     //println(p+"T:"+type+" V:"+version+" LS:"+literals.size()+" SS:"+subs.size());
+    
+    if (results.size()>0)
+    {
+      print(p+"R:");
+      for (i=0;i<results.size();i++)
+      {
+        print(results.get(i)+",");
+      }
+      println();
+    }
+
 
     //for (i=0;i<literals.size();i++)
     //{
