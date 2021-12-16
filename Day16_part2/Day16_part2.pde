@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day16_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day16_part2\\data\\example");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -14,12 +14,11 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input7.txt");
+InputFile input = new InputFile("p2input3.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 String rawHex;
-ArrayList<SubPacket> subs = new ArrayList<SubPacket>();
 
 
 public enum PStates {
@@ -75,22 +74,28 @@ void setup() {
     println(" "+decValue);
   }
   
-  println("BINARY PACKET:"+binaryPacket);
-  int r=processPacket(binaryPacket,0,-1);
+  SubPacket parsedPacket = new SubPacket();
   
-  int total=0;
-  for (i=0;i<subs.size();i++)
-  {
-    if (subs.get(i).version>0)
-    {
-      println("V:"+subs.get(i).version);
-    }
-    total+=subs.get(i).version;
-  }
-  println("TOTAL:"+total);
+  println("BINARY PACKET:"+binaryPacket);
+  int r=processPacket(binaryPacket,parsedPacket,0,-1);
+  
+  //int total=0;
+  //for (i=0;i<subs.size();i++)
+  //{
+  //  if (subs.get(i).version>0)
+  //  {
+  //    println("V:"+subs.get(i).version);
+  //  }
+  //  total+=subs.get(i).version;
+  //}
+  //println("TOTAL:"+total);
+  println("*** EXITED ***");
+  
+  parsedPacket.printPacket(1);
+  println("FINAL RESULT:"+parsedPacket.solve());
 }
 
-public int processPacket(String b, int d, int findPacketCount)
+public int processPacket(String b, SubPacket parentPacket, int d, int findPacketCount)
 {
   
   // General parsing structures, used by all components
@@ -101,10 +106,10 @@ public int processPacket(String b, int d, int findPacketCount)
   int packetsFound=0;
   int i=0;
   boolean allZeros=false;
+  SubPacket sp=new SubPacket();
 
   
   // local temp vars for parsing sub-componets
-  SubPacket sp=new SubPacket();
   int operatorLen=0;
   int operatorFindPackets=0;
   char lenIndicator=0;
@@ -148,7 +153,7 @@ public int processPacket(String b, int d, int findPacketCount)
             break;
         }      
         sp.s=PStates.HEADER;
-        subs.add(sp);
+        //parentPacket.subs.add(sp);
         
         packetsFound++;
         break;
@@ -156,7 +161,7 @@ public int processPacket(String b, int d, int findPacketCount)
       case LITERAL:
         printd("PROCESSING LITERAL",d);
         println();
-        sp = new SubPacket();
+        //sp = new SubPacket();
 
         // is this the last group?
         if (b.charAt(currentIndex)=='1')
@@ -171,21 +176,20 @@ public int processPacket(String b, int d, int findPacketCount)
           currentIndex++;
           literalBuffer+=b.substring(currentIndex,currentIndex+4);
           tempLiteral=Long.parseLong(literalBuffer,2);
-          sp.literals.add(tempLiteral);
+          sp.literal=tempLiteral;
           
           printd("LITERAL end found:",d);
           println(literalBuffer+" ["+tempLiteral+"]");
           literalBuffer="";
           
           sp.s=PStates.LITERAL;
-          subs.add(sp);
           pState=PStates.CHECK;  
         }
         currentIndex+=4;
         break;
         
       case OPERATOR:
-        sp = new SubPacket();
+        //sp = new SubPacket();
         sp.s=PStates.OPERATOR;
         printd("PROCESSING OPERATOR",d);
         println();
@@ -209,10 +213,11 @@ public int processPacket(String b, int d, int findPacketCount)
             
             // recursively call our packet processing function on this sub-string.
             sp.contents=new String(b.substring(currentIndex,currentIndex+operatorLen));
-            currentIndex+=processPacket(sp.contents,d+1,-1);
+            currentIndex+=processPacket(sp.contents,sp,d+1,-1);
+            
             printd("sub-packet processed and return:",d);
             println(currentIndex);
-            subs.add(sp);
+            //parentPacket.subs.add(sp);
             
             pState=PStates.CHECK;
             break;
@@ -223,10 +228,10 @@ public int processPacket(String b, int d, int findPacketCount)
             // TODO - not sure how to set the sp.contents for this case :(
             
             
-            currentIndex+=processPacket(b.substring(currentIndex),d+1,operatorFindPackets);
+            currentIndex+=processPacket(b.substring(currentIndex),sp,d+1,operatorFindPackets);
             printd("sub-packet processed and return:",d);
             println(currentIndex);
-            subs.add(sp);
+            //parentPacket.subs.add(sp);
             
             pState=PStates.CHECK;
             break; // sub packets
@@ -235,6 +240,9 @@ public int processPacket(String b, int d, int findPacketCount)
         break;
         
       case CHECK:
+        // finished with a packet, so close it out and save it
+        parentPacket.subs.add(sp);
+
         // dont know what mode we're in now, so we need
         // to check the digits to determine what to do next
         // if we've run out of string length then lets stop processing
@@ -274,7 +282,6 @@ public int processPacket(String b, int d, int findPacketCount)
         }
         
         break;
-
     }
   }
   printd("ENDED, processed:",d);
@@ -322,11 +329,125 @@ public class SubPacket
 {
   int type=0;
   int version=0;
-  ArrayList<Long> literals = new ArrayList<Long>();
+  //ArrayList<Long> literals = new ArrayList<Long>();
+  long literal;
   PStates s;
   String contents;
+  ArrayList<SubPacket> subs = new ArrayList<SubPacket>();
+  
+  boolean resolved=false;
+  long output=0;
+  
   public SubPacket()
   {
+  }
+  
+  public long solve()
+  {
+    ArrayList<Long> results = new ArrayList<Long>();
+    int i=0;
+    long finalResult=0;
+    Minimum min = new Minimum();
+    Maximum max = new Maximum();
+    
+    // start by checking if any of the subpackets need resolving
+    for (i=0;i<subs.size();i++)
+    {
+      results.add(subs.get(i).solve());
+    }
+    
+    
+    switch (type)
+    {
+      case 0: // SUM
+        for (i=0;i<results.size();i++)
+        {
+          finalResult+=results.get(i);  
+        }
+        break;
+      case 1: // PRODUCT
+        finalResult=results.get(0);
+        for (i=1;i<results.size();i++)
+        {
+          finalResult*=results.get(i);  
+        }
+        break;
+      case 2: // MIN
+        for (i=0;i<results.size();i++)
+        {
+          min.set(results.get(i));  
+        }
+        finalResult=min.value;
+        break;
+      case 3: // MAX
+        for (i=0;i<results.size();i++)
+        {
+          max.set(results.get(i));  
+        }
+        finalResult=max.value;
+        break;
+      case 4: // LIT
+        finalResult=literal;
+        break;
+      case 5: // GT
+        finalResult=results.get(0)>results.get(1)?1:0;
+        break;
+      case 6: // LT
+        finalResult=results.get(0)<results.get(1)?1:0;
+        break;
+      case 7: // EQ
+        finalResult=results.get(0)==results.get(1)?1:0;
+        break;
+    }
+    
+    return(finalResult);
+  }
+  
+  public void printPacket(int d)
+  {
+    String p=new String();
+    int i=0;
+    for (i=0;i<d;i++)
+    {
+      p+=" ";
+    }
+    p+="\\_";
+    
+    println(p+"T:"+type+" V:"+version+" L:"+literal+" SS:"+subs.size()+" Op:"+operatorName(type));
+    //println(p+"T:"+type+" V:"+version+" LS:"+literals.size()+" SS:"+subs.size());
+
+    //for (i=0;i<literals.size();i++)
+    //{
+    //  println(p+"L:["+literals.get(i)+"]");
+    //}
+    for (i=0;i<subs.size();i++)
+    {
+      subs.get(i).printPacket(d+1);
+    }
+  }
+  
+  public String operatorName(int op)
+  {
+    switch (op)
+    {
+      case 0:
+        return("SUM");
+      case 1:
+        return("PRODUCT");
+      case 2:
+        return("MIN");
+      case 3:
+        return("MAX");
+      case 4:
+        return("LIT");
+      case 5:
+        return("GT");
+      case 6:
+        return("LT");
+      case 7:
+        return("EQ");
+    }
+    return("NA");
   }
 }
 
