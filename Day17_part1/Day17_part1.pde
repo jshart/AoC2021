@@ -33,12 +33,13 @@ Target target = new Target();
 Probe probe = new Probe();
 boolean runningAttempt=false;
 JVector baseline=new JVector(1,1);
+Maximum max = new Maximum();
 
 void setup() {
   size(800, 800);
   background(0);
   stroke(255);
-  frameRate(5);
+  frameRate(60);
   rectMode(CORNERS);
 
   System.out.println("Working Directory = " + System.getProperty("user.dir"));
@@ -81,11 +82,11 @@ void draw() {
   
   if (runningAttempt==false)
   {
+    println("*** STARTING NEW RUN");
     probe.reset();
-    baseline.x++;
-    baseline.y++;
     probe.trajectory.set(baseline);
     runningAttempt=true;
+    background(0);
   }
   
   probe.drawProbe();
@@ -98,43 +99,68 @@ void draw() {
   //println();
   
   result=probe.hasHit(target);
-  switch (result)
+  
+  // has the probe height peaked?
+  // if it has we now we need to start
+  // tracking if it will actually hit
+  // or not
+  if (probe.peaked==true)
   {
-    case MHIT:
-      println("HIT! max="+probe.h.value);
-      print("Pos:");
-      probe.position.printVector();
-      print(" Traj:");
-      probe.trajectory.printVector();
-      print(" Base:");
-      baseline.printVector();
-      println();
-      runningAttempt=false;
+    switch (result)
+    {
+      case MHIT:
+        println("HIT! max="+probe.h.value);
+        print("Pos:");
+        probe.position.printVector();
+        print(" Traj:");
+        probe.trajectory.printVector();
+        print(" Base:");
+        baseline.printVector();
+        println();
+        runningAttempt=false;
+  
+        // lets see if we can go higher?
+        baseline.y++;
+        max.set(probe.h.value);
+        
+        break;
+      case MLEFT:
+        // add x
+        baseline.x++;
+        baseline.y++;
+        println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+        runningAttempt=false;
+        break;
+      case MRIGHT:
+        println("MISSED - unrecoverable max="+probe.h.value);
+        print("Pos:");
+        probe.position.printVector();
+        print(" Traj:");
+        probe.trajectory.printVector();
+        print(" Base:");
+        baseline.printVector();
+        println();
+        runningAttempt=false;
+        
+        println("MAX:"+max.value);
+        noLoop();
+        break;
+      case MSKIPPED:
+        println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+        baseline.x++;
+        runningAttempt=false;
+        break;
 
-      // lets see if we can go higher?
-      baseline.y++;
-      
-      break;
-    case MLEFT:
-      // add x
-      println("MISSED - maybe recoverable");
-      runningAttempt=false;
-      baseline.x++;
-      break;
-    case MRIGHT:
-    case MSKIPPED:
-      println("MISSED - unrecoverable");
-      runningAttempt=false;
-      break;
+    }
   }
 }
 
 public class Target
 {
   // example data
-  JVector ts=new JVector(20,-5);JVector te=new JVector(30,-10);
+  //JVector ts=new JVector(20,-5);JVector te=new JVector(30,-10);
   // my data
-  //JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
+  JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
 
 
 
@@ -155,6 +181,7 @@ public class Probe
   JVector position=new JVector(0,0);
   JVector trajectory=new JVector();
   Maximum h=new Maximum();
+  boolean peaked=false;
 
   public void drawProbe()
   {
@@ -173,7 +200,7 @@ public class Probe
     // adjust the velocity based on gravity
     trajectory.y--;
     
-    h.set(position.y);
+    peaked=h.set(position.y)==true?false:true;
   }
   
   public boolean canStillHit(Target t)
@@ -193,7 +220,7 @@ public class Probe
       return(Accuracy.MHIT);
     }
     // did we fall short to the left?
-    if (position.x<t.ts.x && position.y>=t.ts.y)
+    if (position.x<t.ts.x && position.y<=t.te.y)
     {
       return(Accuracy.MLEFT);
     }
@@ -216,6 +243,7 @@ public class Probe
     position.y=0;
     trajectory.x=0;
     trajectory.y=0;
+    peaked=false;
   }
 }
 
@@ -444,13 +472,14 @@ public class Maximum
   {
   }
 
-  public void set(long v)
+  public boolean set(long v)
   {
-
     if (v>value)
     {
       value=v;
+      return(true);
     }
+    return(false);
   }
 }
 
