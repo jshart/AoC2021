@@ -32,14 +32,14 @@ int sf=1;
 Target target = new Target();
 Probe probe = new Probe();
 boolean runningAttempt=false;
-JVector baseline=new JVector(0,1);
+JVector baseline=new JVector(1,1);
 Maximum max = new Maximum();
 
 void setup() {
   size(800, 800);
   background(0);
   stroke(255);
-  frameRate(120);
+  frameRate(60);
   rectMode(CORNERS);
 
   System.out.println("Working Directory = " + System.getProperty("user.dir"));
@@ -110,7 +110,10 @@ void draw() {
     {
       case MHIT:
         println("HIT! max="+probe.h.value);
-        probe.printProbe();
+        print("Pos:");
+        probe.position.printVector();
+        print(" Traj:");
+        probe.trajectory.printVector();
         print(" Base:");
         baseline.printVector();
         println();
@@ -121,44 +124,30 @@ void draw() {
         max.set(probe.h.value);
         
         break;
-      //case MLEFT:
-      //  // add x
-      //  baseline.x++;
-      //  baseline.y++;
-      //  println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
-      //  runningAttempt=false;
-      //  break;
-      //case MRIGHT:
-      //  println("MISSED - unrecoverable max="+probe.h.value);
-      //  print("Pos:");
-      //  probe.position.printVector();
-      //  print(" Traj:");
-      //  probe.trajectory.printVector();
-      //  print(" Base:");
-      //  baseline.printVector();
-      //  println();
-      //  runningAttempt=false;
+      case MLEFT:
+        // add x
+        baseline.x++;
+        baseline.y++;
+        println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+        runningAttempt=false;
+        break;
+      case MRIGHT:
+        println("MISSED - unrecoverable max="+probe.h.value);
+        print("Pos:");
+        probe.position.printVector();
+        print(" Traj:");
+        probe.trajectory.printVector();
+        print(" Base:");
+        baseline.printVector();
+        println();
+        runningAttempt=false;
         
-      //  println("MAX:"+max.value);
-      //  noLoop();
-      //  break;
+        println("MAX:"+max.value);
+        noLoop();
+        break;
       case MSKIPPED:
-        if (abs(probe.trajectory.y)>(abs(target.h)*3))
-        {
-          println("MISSED - can not continue:"+baseline.x+","+baseline.y);
-          probe.printProbe();
-          println();
-          println("H="+target.h);
-          noLoop();
-        } 
-        else
-        {
-          println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
-          probe.printProbe();
-          println();
-          println("H="+target.h);
-          baseline.y++;
-        }
+        println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+        baseline.x++;
         runningAttempt=false;
         break;
 
@@ -172,11 +161,12 @@ public class Target
   //JVector ts=new JVector(20,-5);JVector te=new JVector(30,-10);
   // my data
   JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
-  int h;
+
+
 
   public Target()
   {
-    h=te.y-ts.y;
+
   }
   
   public void drawTarget()
@@ -188,34 +178,15 @@ public class Target
 
 public class Probe
 {
-  JVector position=new JVector();
+  JVector position=new JVector(0,0);
   JVector trajectory=new JVector();
   Maximum h=new Maximum();
   boolean peaked=false;
-
-  public Probe()
-  {
-    reset();
-  }
-  
-  public void reset()
-  {
-    position.x=200;
-    position.y=0;
-    trajectory.x=0;
-    trajectory.y=0;
-    peaked=false;
-  }
 
   public void drawProbe()
   {
     fill(255,0,0);
     rect(position.x+sf,position.y+sf,position.x+(sf*2),position.y+(sf*2));
-  }
-  
-  public void printProbe()
-  {
-    print("P["+position.x+","+position.y+"] T["+trajectory.x+","+trajectory.y+"]");
   }
   
   public void moveProbe()
@@ -242,7 +213,6 @@ public class Probe
     }
     return(true);
   }
-  
   public Accuracy hasHit(Target t)
   {
     if (position.y<=t.ts.y && position.y>=t.te.y && position.x>=t.ts.x && position.x<=t.te.x)
@@ -265,6 +235,15 @@ public class Probe
       return(Accuracy.MSKIPPED);
     }
     return(Accuracy.MTOO_EARLY);
+  }
+  
+  public void reset()
+  {
+    position.x=0;
+    position.y=0;
+    trajectory.x=0;
+    trajectory.y=0;
+    peaked=false;
   }
 }
 
