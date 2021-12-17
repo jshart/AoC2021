@@ -19,11 +19,20 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
+public enum Accuracy {
+  MHIT,
+  MLEFT,
+  MSKIPPED,
+  MRIGHT,
+  MTOO_EARLY
+};
+
+
 int sf=1;
 Target target = new Target();
 Probe probe = new Probe();
 boolean runningAttempt=false;
-JVector baseline=new JVector(6,9);
+JVector baseline=new JVector(1,1);
 
 void setup() {
   size(800, 800);
@@ -59,6 +68,8 @@ void printMasterList()
 
 void draw() {
   JVector drawOffset= new JVector(400,400); 
+  Accuracy result=Accuracy.MTOO_EARLY;
+  
   translate(drawOffset.x,drawOffset.y);
   target.drawTarget();
   
@@ -68,7 +79,7 @@ void draw() {
   //target.te.printVector();
   //println();
   
-  if (runningAttempt==true)
+  if (runningAttempt==false)
   {
     probe.reset();
     baseline.x++;
@@ -86,30 +97,35 @@ void draw() {
   //probe.trajectory.printVector();
   //println();
   
-  if (probe.hasHit(target)==true)
+  result=probe.hasHit(target);
+  switch (result)
   {
-    println("HIT! max="+probe.h.value);
-    print("Pos:");
-    probe.position.printVector();
-    print(" Traj:");
-    probe.trajectory.printVector();
-    print(" Base:");
-    baseline.printVector();
-    println();
-    runningAttempt=false;
-        noLoop();
-  }
-  
-  if (probe.canStillHit(target)==false)
-  {
-    println("MISSED!");
-    runningAttempt=false;
-        noLoop();
-  }
-  
-  if (runningAttempt==false)
-  {
+    case MHIT:
+      println("HIT! max="+probe.h.value);
+      print("Pos:");
+      probe.position.printVector();
+      print(" Traj:");
+      probe.trajectory.printVector();
+      print(" Base:");
+      baseline.printVector();
+      println();
+      runningAttempt=false;
 
+      // lets see if we can go higher?
+      baseline.y++;
+      
+      break;
+    case MLEFT:
+      // add x
+      println("MISSED - maybe recoverable");
+      runningAttempt=false;
+      baseline.x++;
+      break;
+    case MRIGHT:
+    case MSKIPPED:
+      println("MISSED - unrecoverable");
+      runningAttempt=false;
+      break;
   }
 }
 
@@ -170,13 +186,28 @@ public class Probe
     }
     return(true);
   }
-  public boolean hasHit(Target t)
+  public Accuracy hasHit(Target t)
   {
     if (position.y<=t.ts.y && position.y>=t.te.y && position.x>=t.ts.x && position.x<=t.te.x)
     {
-      return(true);
+      return(Accuracy.MHIT);
     }
-    return(false);
+    // did we fall short to the left?
+    if (position.x<t.ts.x && position.y>=t.ts.y)
+    {
+      return(Accuracy.MLEFT);
+    }
+    // did we over shoot to the right?
+    if (position.x>t.te.x)
+    {
+      return(Accuracy.MRIGHT);
+    }
+    // did we just skip over?
+    if (position.y<t.te.y)
+    {
+      return(Accuracy.MSKIPPED);
+    }
+    return(Accuracy.MTOO_EARLY);
   }
   
   public void reset()
