@@ -66,6 +66,7 @@ void printMasterList()
   }
 }
 
+int total=0;
 
 void draw() {
   JVector drawOffset= new JVector(400,400); 
@@ -119,6 +120,7 @@ void draw() {
         // lets see if we can go higher?
         baseline.y++;
         max.set(probe.h.value);
+        total++;
         
         break;
       //case MLEFT:
@@ -149,6 +151,7 @@ void draw() {
           probe.printProbe();
           println();
           println("H="+target.h);
+          println("Total:"+total);
           noLoop();
         } 
         else

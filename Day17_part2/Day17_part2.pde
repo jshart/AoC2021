@@ -46,9 +46,28 @@ public enum Accuracy {
 //    means the probe will immediately jump to the
 //    far right of the target, any larger and it will
 //    immediately be beyond it and can never hit it.
+// 3) The far 'x' range is dependent on 'y' value. For
+//    certain values the *first* x increment can place
+//    you inside the target because the 'y' is aiming
+//    at the side rather than above/below. So the
+//    extreme 'x' value is the distance from the start
+//    position to the far side of the target.
 //
 // Therefore the algorithm needs to check all 'y' values
 // for the range of valid 'x' values.
+//
+// Part 1 found a total of 108 valid 'y' positions for the
+// highest case. So our rough worst case magnitude is valid_x_range * 216
+//
+// for my data, this is;
+// Calibration completed, valid x ranges:19->221 Range Size:202
+// This gives me an order of magnitude of about 43632 permutations.
+// This is an upper end estimate assuming that all 'y' values are as
+// bad as the worst case. This is highly unlikely and its more probable
+// that the magntitude is half or quarter or less of this, however it
+// gives us some confidence that the complete list can be stored in a
+// rational amount of memory.
+
 
 int sf=1;
 Target target = new Target();
@@ -76,6 +95,7 @@ void setup() {
   
 //  }
 
+  probe.calibrateXRange(target);
   probe.trajectory.set(baseline);
 }
 
@@ -204,6 +224,8 @@ public class Probe
   JVector trajectory=new JVector();
   Maximum h=new Maximum();
   boolean peaked=false;
+  int xRangeS=0;
+  int xRangeE=0;
 
   public void drawProbe()
   {
@@ -266,6 +288,59 @@ public class Probe
     trajectory.x=0;
     trajectory.y=0;
     peaked=false;
+  }
+  
+  public void calibrateXRange(Target t)
+  {
+    int i=0;
+    int j=0;
+    int test=0;
+    boolean startRangeFound=false;
+    
+    
+    println("Calibrating X to find range for:"+t.ts.x+"->"+t.te.x);
+    while (startRangeFound==false)
+    {
+      // setup a new test x value
+      i++;
+      test=0;
+      println("Testing x="+i);
+      
+      // calculate how far this would take us
+      for (j=i;j>=0;j--)
+      {
+        test+=j;
+      }
+
+      // is this inside our target area? if it is
+      // and its the first value to be in the area
+      // then we've found are start range
+      if (test>=t.ts.x && startRangeFound==false)
+      {
+        xRangeS=i;
+        startRangeFound=true;
+      }
+      
+      //// if this value exactly hits the end then
+      //// its valid, but also its clearly the last
+      //// such value
+      //if (test==t.te.x)
+      //{
+      //  xRangeE=i;
+      //  endRangeFound=true;
+      //}
+      
+      //// if this value is greater than the end range
+      //// then the previous value must've been the end
+      //// value
+      //if (test>t.te.x)
+      //{
+      //  xRangeE=i-1;
+      //  endRangeFound=true;
+      //}
+    }
+    xRangeE=t.te.x;
+    println("Calibration completed, valid x ranges:"+xRangeS+"->"+xRangeE+" Range Size:"+(xRangeE-xRangeS));
   }
 }
 
