@@ -30,9 +30,9 @@ public enum Accuracy {
 ArrayList<JVector> goodHits = new ArrayList<JVector>();
 
 // TODO LIST:
-// 1) merge in refined MSKIPPED code from day 1
-// 2) create a way to do 2-dimensional brute force...
-//    for a given x value, test all y values?
+// 1) work out how to flip and run for both positive and
+//    negative values of 'y'. Will need another mode switch
+//    in the main logic to run all +y *and* -y for a given x
 //
 // NOTES:
 // 1) there is a minimum 'x' value such as needed
@@ -77,7 +77,7 @@ ArrayList<JVector> goodHits = new ArrayList<JVector>();
 int sf=1;
 Target target = new Target();
 Probe probe = new Probe();
-boolean testCaseActive=false;
+boolean testCaseActive=true;
 boolean increaseX=false;
 JVector testcase=new JVector();
 Maximum max = new Maximum();
@@ -134,6 +134,9 @@ void draw() {
   boolean endConditionMet=false;
   int i=0;
   
+  // If we've finished a test case then we'll mark this
+  // state as inactive, and we should then reset the test
+  // conditions to the next case - if there are any.
   if (testCaseActive==false)
   {
     // if we've explored all the 'y' values at this
@@ -372,6 +375,8 @@ public class Probe
     {
       return(Accuracy.MRIGHT);
     }
+    
+    // TODO - this needs to check both y positions to accurately deal with positive/negative cases
     // did we just skip over?
     if (position.y<t.te.y)
     {
