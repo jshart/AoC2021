@@ -33,6 +33,9 @@ ArrayList<JVector> goodHits = new ArrayList<JVector>();
 // 1) work out how to flip and run for both positive and
 //    negative values of 'y'. Will need another mode switch
 //    in the main logic to run all +y *and* -y for a given x
+// 2) Need to add the concept of initial direction to the probe
+//    class as we need to check for the SKIP case in either
+//    a negative or a positive direction  
 //
 // NOTES:
 // 1) there is a minimum 'x' value such as needed
