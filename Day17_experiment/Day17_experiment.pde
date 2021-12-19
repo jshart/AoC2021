@@ -84,10 +84,10 @@ Target target = new Target();
 Probe probe = new Probe();
 boolean testCaseActive=true;
 boolean increaseX=false;
-JVector testcase=new JVector();
+JVector testcase=new JVector(7,-1);
 Maximum max = new Maximum();
 int total=0;
-int yDelta=1;
+int yDelta=-1;
 
 void setup() {
   size(800, 800);
@@ -110,6 +110,7 @@ void setup() {
 
   probe.calibrateXRange(target);
   testcase.x=probe.xRangeS;
+  testcase.x=7;
   probe.setTrajectory(testcase);
 }
 
@@ -158,7 +159,7 @@ void draw() {
       // 'x' range, then we're done with our test runs
       if (testcase.x>probe.xRangeE)
       {
-//println("testcase.x too high at;"+testcase.x);
+println("testcase.x too high at;"+testcase.x);
 
         // we've exhausted all 'x' values, stop processing
         // report and quit
@@ -211,17 +212,18 @@ void draw() {
     
     testCaseActive=true;
     background(0);
+    noLoop();
   }
+
+  print("Pos:");
+  probe.position.printVector();
+  print(" Traj:");
+  probe.trajectory.printVector();
+  println();
   
   probe.drawProbe();
   probe.moveProbe();
-  
-  //print("Pos:");
-  //probe.position.printVector();
-  //print(" Traj:");
-  //probe.trajectory.printVector();
-  //println();
-  
+ 
   result=probe.hasHit(target);
   
   // This is a small optimisation we can do for
@@ -231,7 +233,7 @@ void draw() {
   {
 // TODO - this is broken - we should only move the x-position
 // once we've exhausted the 'y'
-//println("x position too high at;"+probe.position.x);
+println("x position too high at;"+probe.position.x);
     testcase.y=0;
     testCaseActive=false;
     increaseX=true;
@@ -247,7 +249,7 @@ void draw() {
   // checking whilst the probe is still going up
   if (probe.peaked==true)
   {
-//println("PEAKED");
+println("PEAKED");
     switch (result)
     {
       case MHIT:
@@ -279,11 +281,11 @@ void draw() {
 
       case MSKIPPED:
       
-//println("debug:"+abs(probe.trajectory.y)+","+(abs(target.h)*3));
+println("debug:"+abs(probe.trajectory.y)+","+(abs(target.h)*3));
       
         if (abs(probe.trajectory.y)>(abs(target.h)*3))
         {
-          //print("MISSED - can not continue:"+testcase.x+","+testcase.y+" Probe pos:");
+print("MISSED - can not continue:"+testcase.x+","+testcase.y+" Probe pos:");
           probe.printProbe();
           println(" H="+target.h);
           
@@ -294,7 +296,7 @@ void draw() {
         } 
         else
         {
-          //println("MISSED - maybe recoverable:"+testcase.x+","+testcase.y);
+println("MISSED - maybe recoverable:"+testcase.x+","+testcase.y);
           probe.printProbe();
           println();
           println("H="+target.h);
@@ -330,9 +332,9 @@ public void addGoodHit(JVector j)
 public class Target
 {
   // example data
-  //JVector ts=new JVector(20,-5);JVector te=new JVector(30,-10);
+  JVector ts=new JVector(20,-5);JVector te=new JVector(30,-10);
   // my data
-  JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
+  //JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
   int h;
 
 
@@ -392,7 +394,7 @@ public class Probe
     }
     peaked=h.set(abs(position.y))==true?(peaked==true?true:false):true;
     
-//printProbe();println();
+print("Moved to:");printProbe();println();
   }
   
   //public boolean canStillHit(Target t)
@@ -410,12 +412,12 @@ public class Probe
   {
     if (position.y<=t.ts.y && position.y>=t.te.y && position.x>=t.ts.x && position.x<=t.te.x)
     {
-//println("hasHit: hit");
+println("hasHit: hit");
 
       return(Accuracy.MHIT);
     }
 
-//println("hasHit:"+initialYpositive+" "+position.y+"//"+t.te.y+" peaked:"+probe.peaked);
+println("hasHit:"+initialYpositive+" "+position.y+"//"+t.te.y+" peaked:"+probe.peaked);
 
     
     // TODO - this needs to check both y positions to accurately deal with positive/negative cases
@@ -428,7 +430,7 @@ public class Probe
     
     if (initialYpositive==false && position.y<t.te.y)
     {
-//println("hasHit: skipped hit");
+println("hasHit: skipped hit");
       return(Accuracy.MSKIPPED);
     }
     
@@ -442,7 +444,7 @@ public class Probe
     {
       return(Accuracy.MRIGHT);
     }
-//println("returning too early:"+initialYpositive+" "+position.y+"//"+t.te.y);
+println("returning too early:"+initialYpositive+" "+position.y+"//"+t.te.y);
     return(Accuracy.MTOO_EARLY);
   }
   

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day17_part2\\data\\mydata");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day17_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -27,67 +27,13 @@ public enum Accuracy {
   MTOO_EARLY
 };
 
-ArrayList<JVector> goodHits = new ArrayList<JVector>();
-
-// TODO LIST:
-// 1) work out how to flip and run for both positive and
-//    negative values of 'y'. Will need another mode switch
-//    in the main logic to run all +y *and* -y for a given x
-// 2) Need to add the concept of initial direction to the probe
-//    class as we need to check for the SKIP case in either
-//    a negative or a positive direction  
-// 3) Need to seperate 'x' and 'y' progression cases - we need
-//    to make sure we've exhausted all the 'y' values before
-//    we move on the 'x' 
-//
-// NOTES:
-// 1) there is a minimum 'x' value such as needed
-//    to brige the gap to the target - for the example
-//    this is '6' because anything less - e.g. '5'
-//    will not generate enough x-delta before drag
-//    brings it to zero, e.g. 5+4+3+2+1=15, so no
-//    matter the 'y' value the probe can never hit
-//    the target.
-// 2) there is a maximum 'x' value such that beyond
-//    that value the 'x' will immediately "gap" past
-//    the target. e.g. for the example, an 'x' of 30
-//    means the probe will immediately jump to the
-//    far right of the target, any larger and it will
-//    immediately be beyond it and can never hit it.
-// 3) The far 'x' range is dependent on 'y' value. For
-//    certain values the *first* x increment can place
-//    you inside the target because the 'y' is aiming
-//    at the side rather than above/below. So the
-//    extreme 'x' value is the distance from the start
-//    position to the far side of the target.
-//
-// Therefore the algorithm needs to check all 'y' values
-// for the range of valid 'x' values.
-//
-// Part 1 found a total of 108 valid 'y' positions for the
-// highest case. So our rough worst case magnitude is valid_x_range * 216
-//
-// for my data, this is;
-// Calibration completed, valid x ranges:19->221 Range Size:202
-// This gives me an order of magnitude of about 43632 permutations.
-// This is an upper end estimate assuming that all 'y' values are as
-// bad as the worst case. This is highly unlikely and its more probable
-// that the magntitude is half or quarter or less of this, however it
-// gives us some confidence that the complete list can be stored in a
-// rational amount of memory.
-//
-// near results? Array size=2809 Total:2813
-
 
 int sf=1;
 Target target = new Target();
 Probe probe = new Probe();
-boolean testCaseActive=true;
-boolean increaseX=false;
-JVector testcase=new JVector();
+boolean runningAttempt=false;
+JVector baseline=new JVector(0,1);
 Maximum max = new Maximum();
-int total=0;
-int yDelta=1;
 
 void setup() {
   size(800, 800);
@@ -108,9 +54,7 @@ void setup() {
   
 //  }
 
-  probe.calibrateXRange(target);
-  testcase.x=probe.xRangeS;
-  probe.setTrajectory(testcase);
+  probe.trajectory.set(baseline);
 }
 
 void printMasterList()
@@ -136,80 +80,12 @@ void draw() {
   //target.te.printVector();
   //println();
   
-  boolean endConditionMet=false;
-  int i=0;
-
-//print("*");
-
-  // If we've finished a test case then we'll mark this
-  // state as inactive, and we should then reset the test
-  // conditions to the next case - if there are any.
-  if (testCaseActive==false)
+  if (runningAttempt==false)
   {
-    // if we've explored all the 'y' values at this
-    // location, then we may need to increase 'x'
-    // to test a new range of 'y' values
-    if (increaseX==true)
-    {
-      increaseX=false;
-      testcase.x++;
-      
-      // if thew new 'x' location is beyond the valid
-      // 'x' range, then we're done with our test runs
-      if (testcase.x>probe.xRangeE)
-      {
-//println("testcase.x too high at;"+testcase.x);
-
-        // we've exhausted all 'x' values, stop processing
-        // report and quit
-        endConditionMet=true;
-
-        // switch from positive to negative cases
-        if (yDelta>0)
-        {
-          endConditionMet=false;
-          yDelta=-1;
-          testcase.x=0;
-          testcase.y=0;
-        }
-        
-        if (endConditionMet==true)
-        {
-          // we've exhausted all 'x' values, stop processing
-          // report and quit
-          println("\n### ALL RUNS COMPLETE");
-          println("Total:"+total);
-          
-          println("Array size="+goodHits.size());
-          for (i=0;i<goodHits.size();i++)
-          {
-            goodHits.get(i).printVector();
-            println();
-          }
-          println("Array size="+goodHits.size());
-          println("Total:"+total);
-
-          noLoop();
-          
-          return;
-        }
-      }
-      
-      testcase.y=0;
-    }
-    else
-    {
-      // lets see if we can go higher?
-      testcase.y+=yDelta;
-    }
-    
+    println("*** STARTING NEW RUN");
     probe.reset();
-    probe.setTrajectory(testcase);
-    print("*** STARTING NEW RUN for case with testV: ");
-    testcase.printVector();
-    println();
-    
-    testCaseActive=true;
+    probe.trajectory.set(baseline);
+    runningAttempt=true;
     background(0);
   }
   
@@ -224,107 +100,70 @@ void draw() {
   
   result=probe.hasHit(target);
   
-  // This is a small optimisation we can do for
-  // the positive cases that lets us reduce the
-  // search space.
-  if (yDelta>0 && probe.position.x>probe.xRangeE)
-  {
-// TODO - this is broken - we should only move the x-position
-// once we've exhausted the 'y'
-//println("x position too high at;"+probe.position.x);
-    testcase.y=0;
-    testCaseActive=false;
-    increaseX=true;
-    probe.peaked=false;
-  }
-  
-
-  
   // has the probe height peaked?
   // if it has we now we need to start
   // tracking if it will actually hit
-  // or not, this just saves us from boundary
-  // checking whilst the probe is still going up
+  // or not
   if (probe.peaked==true)
   {
-//println("PEAKED");
     switch (result)
     {
       case MHIT:
-        println(" +- HIT! max="+probe.h.value);
-        print(" +- Pos:");
-        probe.position.printVector();
-        print(" Traj:");
-        probe.trajectory.printVector();
+        println("HIT! max="+probe.h.value);
+        probe.printProbe();
         print(" Base:");
-        testcase.printVector();
+        baseline.printVector();
         println();
-        
-        
-        testCaseActive=false;
+        runningAttempt=false;
   
-        addGoodHit(new JVector(testcase));
- 
+        // lets see if we can go higher?
+        baseline.y++;
         max.set(probe.h.value);
-        total++;
         
         break;
-
-      //case MRIGHT:
-      //  println("to the right, to the right...");
-      //  testCaseActive=false;
-      //  //endConditionMet=true;
-      //  //increaseX=true;
+      //case MLEFT:
+      //  // add x
+      //  baseline.x++;
+      //  baseline.y++;
+      //  println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+      //  runningAttempt=false;
       //  break;
-
+      //case MRIGHT:
+      //  println("MISSED - unrecoverable max="+probe.h.value);
+      //  print("Pos:");
+      //  probe.position.printVector();
+      //  print(" Traj:");
+      //  probe.trajectory.printVector();
+      //  print(" Base:");
+      //  baseline.printVector();
+      //  println();
+      //  runningAttempt=false;
+        
+      //  println("MAX:"+max.value);
+      //  noLoop();
+      //  break;
       case MSKIPPED:
-      
-//println("debug:"+abs(probe.trajectory.y)+","+(abs(target.h)*3));
-      
         if (abs(probe.trajectory.y)>(abs(target.h)*3))
         {
-          //print("MISSED - can not continue:"+testcase.x+","+testcase.y+" Probe pos:");
-          probe.printProbe();
-          println(" H="+target.h);
-          
-          // we've really finished with this case now - we've gone a reasonable
-          // window past the last positive results, so lets try another 'x' value
-          testCaseActive=false;
-          increaseX=true;
-        } 
-        else
-        {
-          //println("MISSED - maybe recoverable:"+testcase.x+","+testcase.y);
+          println("MISSED - can not continue:"+baseline.x+","+baseline.y);
           probe.printProbe();
           println();
           println("H="+target.h);
+          noLoop();
+        } 
+        else
+        {
+          println("MISSED - maybe recoverable:"+baseline.x+","+baseline.y);
+          probe.printProbe();
+          println();
+          println("H="+target.h);
+          baseline.y++;
         }
-        
-        testCaseActive=false;
-
+        runningAttempt=false;
         break;
-      //case MLEFT:
-      //case MRIGHT:
-      //  testCaseActive=false;
-      //  increaseX=true;
-        //break;
-    }
-  }
-}
 
-public void addGoodHit(JVector j)
-{
-  int i=0;
-  JVector t;
-  for (i=0;i<goodHits.size();i++)
-  {
-    t=goodHits.get(i);
-    if (t.x==j.x && t.y==j.y)
-    {
-      return;
     }
   }
-  goodHits.add(j);
 }
 
 public class Target
@@ -334,7 +173,6 @@ public class Target
   // my data
   JVector ts=new JVector(185,-74);JVector te=new JVector(221,-122);
   int h;
-
 
   public Target()
   {
@@ -350,18 +188,23 @@ public class Target
 
 public class Probe
 {
-  JVector position=new JVector(0,0);
+  JVector position=new JVector();
   JVector trajectory=new JVector();
   Maximum h=new Maximum();
   boolean peaked=false;
-  int xRangeS=0;
-  int xRangeE=0;
-  boolean initialYpositive=false;
 
-  public void setTrajectory(JVector t)
+  public Probe()
   {
-    trajectory.set(t);
-    initialYpositive=trajectory.y>=0?true:false;
+    reset();
+  }
+  
+  public void reset()
+  {
+    position.x=200;
+    position.y=0;
+    trajectory.x=0;
+    trajectory.y=0;
+    peaked=false;
   }
 
   public void drawProbe()
@@ -386,52 +229,26 @@ public class Probe
     // adjust the velocity based on gravity
     trajectory.y--;
     
-    if (initialYpositive==false)
-    {
-      peaked=true;
-    }
-    peaked=h.set(abs(position.y))==true?(peaked==true?true:false):true;
-    
-//printProbe();println();
+    peaked=h.set(position.y)==true?false:true;
   }
   
-  //public boolean canStillHit(Target t)
-  //{
-  //  // if the probe lower than the target area
-  //  // then it can not hit it
-  //  if (position.y<t.te.y)
-  //  {
-  //    return(false);
-  //  }
-  //  return(true);
-  //}
+  public boolean canStillHit(Target t)
+  {
+    // if the probe lower than the target area
+    // then it can not hit it
+    if (position.y<t.te.y)
+    {
+      return(false);
+    }
+    return(true);
+  }
   
   public Accuracy hasHit(Target t)
   {
     if (position.y<=t.ts.y && position.y>=t.te.y && position.x>=t.ts.x && position.x<=t.te.x)
     {
-//println("hasHit: hit");
-
       return(Accuracy.MHIT);
     }
-
-//println("hasHit:"+initialYpositive+" "+position.y+"//"+t.te.y+" peaked:"+probe.peaked);
-
-    
-    // TODO - this needs to check both y positions to accurately deal with positive/negative cases
-    // did we just skip over?
-    //if ((trajectory.y>0 && position.y<t.te.y) || trajectory.y<0 && position.y>t.ts.y)
-    if (initialYpositive==true && position.y<t.te.y)
-    {
-      return(Accuracy.MSKIPPED);
-    }
-    
-    if (initialYpositive==false && position.y<t.te.y)
-    {
-//println("hasHit: skipped hit");
-      return(Accuracy.MSKIPPED);
-    }
-    
     // did we fall short to the left?
     if (position.x<t.ts.x && position.y<=t.te.y)
     {
@@ -442,70 +259,12 @@ public class Probe
     {
       return(Accuracy.MRIGHT);
     }
-//println("returning too early:"+initialYpositive+" "+position.y+"//"+t.te.y);
-    return(Accuracy.MTOO_EARLY);
-  }
-  
-  public void reset()
-  {
-    position.x=0;
-    position.y=0;
-    trajectory.x=0;
-    trajectory.y=0;
-    peaked=false;
-  }
-  
-  public void calibrateXRange(Target t)
-  {
-    int i=0;
-    int j=0;
-    int test=0;
-    boolean startRangeFound=false;
-    
-    
-    println("Calibrating X to find range for:"+t.ts.x+"->"+t.te.x);
-    while (startRangeFound==false)
+    // did we just skip over?
+    if (position.y<t.te.y)
     {
-      // setup a new test x value
-      i++;
-      test=0;
-      println("Testing x="+i);
-      
-      // calculate how far this would take us
-      for (j=i;j>=0;j--)
-      {
-        test+=j;
-      }
-
-      // is this inside our target area? if it is
-      // and its the first value to be in the area
-      // then we've found are start range
-      if (test>=t.ts.x && startRangeFound==false)
-      {
-        xRangeS=i;
-        startRangeFound=true;
-      }
-      
-      //// if this value exactly hits the end then
-      //// its valid, but also its clearly the last
-      //// such value
-      //if (test==t.te.x)
-      //{
-      //  xRangeE=i;
-      //  endRangeFound=true;
-      //}
-      
-      //// if this value is greater than the end range
-      //// then the previous value must've been the end
-      //// value
-      //if (test>t.te.x)
-      //{
-      //  xRangeE=i-1;
-      //  endRangeFound=true;
-      //}
+      return(Accuracy.MSKIPPED);
     }
-    xRangeE=t.te.x;
-    println("Calibration completed, valid x ranges:"+xRangeS+"->"+xRangeE+" Range Size:"+(xRangeE-xRangeS));
+    return(Accuracy.MTOO_EARLY);
   }
 }
 
@@ -518,11 +277,6 @@ public class JVector
   
   public JVector()
   {
-  }
-  
-  public JVector(JVector j)
-  {
-    set(j);
   }
   public JVector(int x_, int y_)
   {
