@@ -27,8 +27,10 @@ ArrayList<StackTracker> sfStack = new ArrayList<StackTracker>();
 //String explodeExample=new String("[[[[[9,8],1],2],3],4]");
 //String explodeExample=new String("[7,[6,[5,[4,[3,2]]]]]");
 //String explodeExample=new String("[[6,[5,[4,[3,2]]]],1]");
-//String explodeExample=new String("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]");
-String explodeExample=new String("[[3,[2,[8,0]]],[9,[5,[7,0]]]]");
+String explodeExample=new String("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]");
+//String explodeExample=new String("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]");
+//String myLine1=new String("[[[[7,7],2],[[9,2],4]],[[[9,1],5],[[9,6],[6,4]]]]");
+
 
 
 void setup() {
@@ -43,14 +45,14 @@ void setup() {
   
   int i=0,j=0;
 
-  Snailfish temp=new Snailfish();
+  Snailfish currentSf=new Snailfish();
  
   String currentString=explodeExample;
  
   println(currentString);
-  temp.populate(currentString,0);
+  currentSf.populate(currentString,0);
   //temp.printRawSF(currentString);
-  temp.printTree(temp,0);
+  currentSf.printTree(currentSf,0);
   
 
   
@@ -59,21 +61,28 @@ void setup() {
   // first sub-child (which is the left side). its easier to just take the
   // left side and use that than it is to muddy the code with "exception"
   // paths to do something special with the object model for the top level
-  println("ENCODED:"+temp.encodeBackToString(temp.left));
+  println("Cross check to verify re-encoding works:"+currentSf.encodeBackToString(currentSf.left));
   
-  //temp.buildStackView2(temp,stackview);
-  //temp.printStackView();
-  temp.stackNumbers(temp);
+  // Attempt to reduce the number...
   
-  for (i=0;i<sfStack.size();i++)
+  
+  boolean reductionFound=true;
+  do
   {
-    sfStack.get(i).printTracker();
-  }
+    sfStack.clear();
+    currentSf.stackNumbers(currentSf);
+    
+    //println("Stack View dump:");
+    //for (i=0;i<sfStack.size();i++)
+    //{
+    //  sfStack.get(i).printTracker();
+    //}
+    
+    reductionFound=currentSf.findExplodeCandidate(currentSf,0);
+    println("Explode candidate found:"+reductionFound);
   
-  temp.findExplodeCandidate(temp,0);
-
-  println("ENCODED:"+temp.encodeBackToString(temp.left));
-
+    println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
+  } while (reductionFound==true);
 
 
   // Loop through each input item...
@@ -199,16 +208,28 @@ public class Snailfish
     return(in.length());
   }
   
-  public void findExplodeCandidate(Snailfish sf, int d)
+  public boolean findSplitCandidate(Snailfish sf, int d)
+  {
+    // Find the first number that is greater than 10
+    
+    // Create a new Snailfish number by splitting the 10
+    
+    // add the new object back into the tree
+    return(false);
+  }
+  
+  public boolean findExplodeCandidate(Snailfish sf, int d)
   {
     int lnum=0;
     int rnum=0;
-    if (sf.left==null && sf.right==null)
+    
+    boolean ret=false;
+    if (sf.left==null && sf.right==null && d>4)
     {
-println("Before update:["+sf.leftValue+","+sf.rightValue+"]");
+//println("Before update:["+sf.leftValue+","+sf.rightValue+"]");
       lnum=sf.findNumberLeft(sf.leftValue);
       rnum=sf.findNumberRight(sf.rightValue);
-println("Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rightValue+"], No to Left:"+lnum+" No to Right:"+rnum);
+println("****   Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rightValue+"], No to Left:"+lnum+" No to Right:"+rnum);
       
       if (lnum<0)
       {
@@ -241,16 +262,26 @@ println("Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rig
       }
       
       //backtrackFrom(sf);
+      return(true);
     }
     if (sf.left!=null)
     {
-      findExplodeCandidate(sf.left,d+1);
+      ret=findExplodeCandidate(sf.left,d+1);
+      if (ret==true)
+      {
+        return(true);
+      }
     }
     
     if (sf.right!=null)
     {
-      findExplodeCandidate(sf.right,d+1);
+      ret=findExplodeCandidate(sf.right,d+1);
+      if (ret==true)
+      {
+        return(true);
+      }
     }
+    return(false);
   }
 
   public void stackNumbers(Snailfish sf)
@@ -304,69 +335,7 @@ println("Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rig
     return(s);
   }
   
-  public ArrayList<Snailfish> buildStackView(Snailfish sf)
-  { 
-    ArrayList<Snailfish> temp = new ArrayList<Snailfish>();
-    
-    if (sf.left!=null)
-    {
-      temp.addAll(buildStackView(sf.left));
-    }
-    else
-    {
-      //temp.add(sf);
-    }
 
-    if (sf.right!=null)
-    {
-      temp.addAll(buildStackView(sf.right));
-    }
-    else
-    {
-      //temp.add(sf);
-    }
-    
-    if (sf.right==null || sf.left==null)
-    {
-      temp.add(sf);
-    }
-     
-    return(temp);
-  }
-  
-  public void buildStackView2(Snailfish sf, ArrayList<Snailfish> list)
-  {     
-    if (sf.left!=null)
-    {
-            list.add(sf);
-
-      buildStackView2(sf.left,list);
-    }
-    else
-    {
-      //temp.add(sf);
-      list.add(sf);
-    }
-
-    if (sf.right!=null)
-    {
-            list.add(sf);
-
-      buildStackView2(sf.right, list);
-    }
-    else
-    {
-      //temp.add(sf);
-      list.add(sf);
-    }
-    
-    //if (sf.right==null && sf.left==null)
-    //{
-    //  list.add(sf);
-    //}
-     
-    return;
-  }
   
   public void printStackView()
   {
@@ -388,19 +357,19 @@ println("Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rig
     int l=sfStack.size();
     Snailfish sf;
     
-print("i="+i+" l="+l+"Searching for:"+this);
+//print("i="+i+" l="+l+"Searching for:"+this);
         
     for (i=0;i<l;i++)
     {
       sf=sfStack.get(i).sfRef;
-println("comparing:"+sf+" with "+this);
+//println("comparing:"+sf+" with "+this);
       if (sf==this)
       {
-println(" found");
+//println(" found");
         return(i);
       }
     }
-println(" NOT found");
+//println(" NOT found");
     return(-1);
   }
   
@@ -422,18 +391,18 @@ println(" NOT found");
       
       if (t!=this)
       {
-      if (t.right==null)
-      {
-sfStack.get(i).printTracker();
-        t.rightValue+=addNum;
-        return(t.rightValue);
-      }
-      if (t.left==null)
-      {
-sfStack.get(i).printTracker();
-        t.leftValue+=addNum;
-        return(t.leftValue);
-      }
+        if (t.right==null)
+        {
+  //sfStack.get(i).printTracker();
+          t.rightValue+=addNum;
+          return(t.rightValue);
+        }
+        if (t.left==null)
+        {
+  //sfStack.get(i).printTracker();
+          t.leftValue+=addNum;
+          return(t.leftValue);
+        }
       }
     }
     return(-1);
@@ -457,18 +426,18 @@ sfStack.get(i).printTracker();
 
       if (t!=this)
       {
-      if (t.left==null)
-      {
-sfStack.get(i).printTracker();
-        t.leftValue+=addNum;
-        return(t.leftValue);
-      }
-      if (t.right==null)
-      {
-sfStack.get(i).printTracker();
-        t.rightValue+=addNum;
-        return(t.rightValue);
-      }
+        if (t.left==null)
+        {
+  //sfStack.get(i).printTracker();
+          t.leftValue+=addNum;
+          return(t.leftValue);
+        }
+        if (t.right==null)
+        {
+  //sfStack.get(i).printTracker();
+          t.rightValue+=addNum;
+          return(t.rightValue);
+        }
       }
     }
     return(-1);
