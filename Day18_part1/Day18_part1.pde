@@ -65,7 +65,8 @@ public class Snailfish
   Snailfish left=null;;
   Snailfish right=null;
   String exp=null;
-  int value=0;
+  int leftValue=0;
+  int rightValue=0;
   
   boolean leftRight=false; // false==left, true==right
   
@@ -97,7 +98,7 @@ public class Snailfish
           {
             right=new Snailfish();
             right.backtrack=this;
-            i+=left.populate(in.substring(i),d+1);
+            i+=right.populate(in.substring(i),d+1);
           }
           
 //println("** i after return:"+i);
@@ -109,13 +110,21 @@ public class Snailfish
           return(i);
         case ',':
           println(depthPad(d)+"SF left/right transition found ,");
-          leftRight=true;
+          leftRight=!leftRight;
           break;
         default:
-          value=Character.getNumericValue(in.charAt(i));
-          print(depthPad(d)+(leftRight==false?"Left ":"Right ")+"SF value found:"+value);
-          println();
-          
+          if (leftRight==false)
+          {
+            leftValue=Character.getNumericValue(in.charAt(i));
+            print(depthPad(d)+"left "+"SF value found:"+leftValue);
+            println();
+          }
+          else
+          {
+            rightValue=Character.getNumericValue(in.charAt(i));
+            print(depthPad(d)+"Right "+"SF value found:"+rightValue);
+            println();
+          }
           // safety check - I think all values should be one
           // char long, but just as a safety check lets verify
           // the next char isnt a digit, because if so, its an
@@ -146,7 +155,16 @@ public class Snailfish
   
   public String printThisSnailfish()
   {
-    return("Obj:"+this+" L Obj:"+left+" R Obj:"+right+" Value:"+value);
+    String s=new String();
+    s="Obj:"+this;
+    s+="=>[";
+    s+=(left!=null?"L Obj="+left:"L value="+leftValue);
+    s+=" ";
+    s+=(right!=null?"R Obj="+right:"R value="+rightValue);
+    s+="]";
+
+    //return("Obj:"+this+" L Obj:"+left+" R Obj:"+right+" Value:"+leftValue+","+rightValue);
+    return(s);
   }
   
   public void printRawAsFormatted(String in)
@@ -170,8 +188,8 @@ public class Snailfish
           println(depthPad(d)+"SF left/right transition found ,");
           break;
         default:
-          value=Character.getNumericValue(in.charAt(i));
-          print(depthPad(d)+"SF value found:"+value);
+          leftValue=Character.getNumericValue(in.charAt(i));
+          print(depthPad(d)+"SF value found:"+leftValue);
           println();
           
           // safety check - I think all values should be one
