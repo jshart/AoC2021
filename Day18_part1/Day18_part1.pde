@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day18_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day18_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input4.txt");
+InputFile input = new InputFile("input.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -48,6 +48,14 @@ void setup() {
   int i=0,j=0;
 
   Snailfish currentSf=new Snailfish();
+  boolean explodeFound=false;
+  boolean splitFound=false;
+  boolean anyActions=false;
+  
+  //// magnitude test area
+  //currentSf.populate("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]",0);
+  //println("Magnitude:"+currentSf.left.mag());
+
  
   //println(currentString);
   //currentSf.populate(currentString,0);
@@ -64,18 +72,12 @@ void setup() {
   //println("Cross check to verify re-encoding works:"+currentSf.encodeBackToString(currentSf.left));
   
   // Attempt to reduce the number...
-  
-  
-  boolean explodeFound=false;
-  boolean splitFound=false;
-  boolean anyActions=false;
-
-
   currentString=input.lines.get(0);
 
   // Loop through each input item...
+
   for (i=1;i<input.lines.size();i++)
-  //for (i=1;i<3;i++)
+  //for (i=1;i<1;i++)
   {
     println("===> adding string:"+input.lines.get(i));
     currentString="["+currentString+","+input.lines.get(i)+"]";
@@ -150,6 +152,8 @@ void setup() {
     
     println("===> Completed redunction for current string");
   }
+  
+  println("FINAL MAG:"+currentSf.left.mag());
 }
 
 void printMasterList()
@@ -194,15 +198,15 @@ public class Snailfish
   int leftValue=-1;
   int rightValue=-1;
   
-  long lmag=-1;
-  long rmag=-1;
-  
   boolean leftRight=false; // false==left, true==right
   
   long mag()
   {
-    long lmag=leftValue*3;
-    long rmag=rightValue*2;
+    long lmag=0;
+    long rmag=0;
+    
+    lmag=(left==null?(leftValue*3):left.mag()*3);
+    rmag=(right==null?(rightValue*2):right.mag()*2);
     return(lmag+rmag);
   }
   
