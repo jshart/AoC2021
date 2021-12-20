@@ -30,7 +30,9 @@ ArrayList<StackTracker> sfStack = new ArrayList<StackTracker>();
 String explodeExample=new String("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]");
 //String explodeExample=new String("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]");
 //String myLine1=new String("[[[[7,7],2],[[9,2],4]],[[[9,1],5],[[9,6],[6,4]]]]");
+String splitExample=new String("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]");
 
+String currentString=splitExample;
 
 
 void setup() {
@@ -47,7 +49,7 @@ void setup() {
 
   Snailfish currentSf=new Snailfish();
  
-  String currentString=explodeExample;
+
  
   println(currentString);
   currentSf.populate(currentString,0);
@@ -72,16 +74,17 @@ void setup() {
     sfStack.clear();
     currentSf.stackNumbers(currentSf);
     
-    //println("Stack View dump:");
-    //for (i=0;i<sfStack.size();i++)
-    //{
-    //  sfStack.get(i).printTracker();
-    //}
+    println("Stack View dump:");
+    for (i=0;i<sfStack.size();i++)
+    {
+      sfStack.get(i).printTracker();
+    }
     
     reductionFound=currentSf.findExplodeCandidate(currentSf,0);
     println("Explode candidate found:"+reductionFound);
-  
     println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
+    
+    currentSf.findSplitCandidate();
   } while (reductionFound==true);
 
 
@@ -208,12 +211,33 @@ public class Snailfish
     return(in.length());
   }
   
-  public boolean findSplitCandidate(Snailfish sf, int d)
+  public boolean findSplitCandidate()
   {
+    int i=0;
+    int l=sfStack.size();
+    Snailfish sf=null;
+    
     // Find the first number that is greater than 10
+    for (i=0;i<l;i++)
+    {
+      sf=sfStack.get(i).sfRef;
+      
+      if (sf.leftValue>10 || sf.rightValue>10)
+      {
+        print("**** Split candidate found:"+sf.printThisSnailfish());
+        println();
+        break;
+      }
+    }
     
-    // Create a new Snailfish number by splitting the 10
-    
+    if (sf!=null)
+    {
+      // Create a new Snailfish number by splitting the 10
+      int t=sf.leftValue>10?sf.leftValue:sf.rightValue;
+      int left=t/2;
+      int right=t-left;
+      println("new left="+left+" new right="+right);
+    }
     // add the new object back into the tree
     return(false);
   }
