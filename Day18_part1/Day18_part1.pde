@@ -68,46 +68,85 @@ void setup() {
   
   boolean explodeFound=false;
   boolean splitFound=false;
+  boolean anyActions=false;
 
 
   currentString=input.lines.get(0);
 
   // Loop through each input item...
-  //for (i=1;i<input.lines.size();i++)
-  for (i=1;i<2;i++)
+  for (i=1;i<input.lines.size();i++)
+  //for (i=1;i<3;i++)
   {
     println("===> adding string:"+input.lines.get(i));
     currentString="["+currentString+","+input.lines.get(i)+"]";
-    println("===> current string set to:"+currentString);
     
     currentSf=new Snailfish();
     currentSf.populate(currentString,0);
+    println("===> current string set to:"+currentString);
+    //if (i==2)
+    //  return;
 
     do
     {
-      explodeFound=false;
-      splitFound=true;
-      
-      sfStack.clear();
-      currentSf.stackNumbers(currentSf);
-      
-      //println("Stack View dump:");
-      //for (j=0;j<sfStack.size();j++)
+      anyActions=false;
+      //do
       //{
-      //  sfStack.get(j).printTracker();
-      //}
+        explodeFound=false;
+        
+        sfStack.clear();
+        currentSf.stackNumbers(currentSf);
+        
+        //println("Stack View dump:");
+        //for (j=0;j<sfStack.size();j++)
+        //{
+        //  sfStack.get(j).printTracker();
+        //}
+        
+        explodeFound=currentSf.findExplodeCandidate(currentSf,0);
+        currentString=currentSf.encodeBackToString(currentSf.left);
+        println("ENCODED:"+currentString);
+        
+        println("Explode:"+explodeFound);
+        
+        if (explodeFound)
+        {
+          anyActions=true;
+          continue;
+        }
+        
+      //} while (explodeFound==true);
+      //println("**** finished checking explodes, switching to splits");
       
-      explodeFound=currentSf.findExplodeCandidate(currentSf,0);
-      println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
+      //do
+      //{
+        splitFound=false;
+        
+        sfStack.clear();
+        currentSf.stackNumbers(currentSf);
+        
+        //println("Stack View dump:");
+        //for (j=0;j<sfStack.size();j++)
+        //{
+        //  sfStack.get(j).printTracker();
+        //}
+        
+        
+        splitFound=currentSf.findSplitCandidate();
+        currentString=currentSf.encodeBackToString(currentSf.left);
+        println("ENCODED:"+currentString);
+        
+        println("Split:"+splitFound);
+        
+        if (splitFound)
+        {
+          anyActions=true;
+        }
+        
+      //} while (splitFound==true);
+      //println("**** finished checking splits, do we need to rerun? "+anyActions);
+
       
-      sfStack.clear();
-      currentSf.stackNumbers(currentSf);
-      
-      splitFound=currentSf.findSplitCandidate();
-      println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
-      
-      println("Explode:"+explodeFound+" Split:"+splitFound);
-    } while (explodeFound==true || splitFound==true);
+    } while (anyActions==true);
     
     println("===> Completed redunction for current string");
   }
@@ -155,8 +194,17 @@ public class Snailfish
   int leftValue=-1;
   int rightValue=-1;
   
+  long lmag=-1;
+  long rmag=-1;
+  
   boolean leftRight=false; // false==left, true==right
   
+  long mag()
+  {
+    long lmag=leftValue*3;
+    long rmag=rightValue*2;
+    return(lmag+rmag);
+  }
   
   public Snailfish()
   {
@@ -239,7 +287,7 @@ public class Snailfish
     {
       sf=sfStack.get(i).sfRef;
       
-      if (sf.leftValue>10 || sf.rightValue>10)
+      if (sf.leftValue>9 || sf.rightValue>9)
       {
         print("**** Split candidate found:"+sf.printThisSnailfish());
         println();
@@ -251,7 +299,7 @@ public class Snailfish
     if (sf!=null)
     {
       // Create a new Snailfish number by splitting the 10
-      int t=sf.leftValue>10?sf.leftValue:sf.rightValue;
+      int t=sf.leftValue>9?sf.leftValue:sf.rightValue;
       int left=t/2;
       int right=t-left;
 //println("new left="+left+" new right="+ right);
@@ -261,14 +309,14 @@ public class Snailfish
       nf.leftValue=left;
       nf.rightValue=right;
       
-      if (sf.leftValue>10)
+      if (sf.leftValue>9)
       {
         sf.leftValue=-1;
         sf.left=nf;
         return(true);
       }
       
-      if (sf.rightValue>10)
+      if (sf.rightValue>9)
       {
         sf.rightValue=-1;
         sf.right=nf;
