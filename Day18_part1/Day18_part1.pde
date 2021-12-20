@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day18_part1\\data\\mydata");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day18_part1\\data\\example");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -14,7 +14,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 
 
 // Raw input and parsed input lists for *all data*
-InputFile input = new InputFile("input.txt");
+InputFile input = new InputFile("input4.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
@@ -49,12 +49,10 @@ void setup() {
 
   Snailfish currentSf=new Snailfish();
  
-
- 
-  println(currentString);
-  currentSf.populate(currentString,0);
-  //temp.printRawSF(currentString);
-  currentSf.printTree(currentSf,0);
+  //println(currentString);
+  //currentSf.populate(currentString,0);
+  ////temp.printRawSF(currentString);
+  //currentSf.printTree(currentSf,0);
   
 
   
@@ -63,37 +61,56 @@ void setup() {
   // first sub-child (which is the left side). its easier to just take the
   // left side and use that than it is to muddy the code with "exception"
   // paths to do something special with the object model for the top level
-  println("Cross check to verify re-encoding works:"+currentSf.encodeBackToString(currentSf.left));
+  //println("Cross check to verify re-encoding works:"+currentSf.encodeBackToString(currentSf.left));
   
   // Attempt to reduce the number...
   
   
-  boolean reductionFound=true;
-  do
-  {
-    sfStack.clear();
-    currentSf.stackNumbers(currentSf);
-    
-    println("Stack View dump:");
-    for (i=0;i<sfStack.size();i++)
-    {
-      sfStack.get(i).printTracker();
-    }
-    
-    reductionFound=currentSf.findExplodeCandidate(currentSf,0);
-    println("Explode candidate found:"+reductionFound);
-    println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
-    
-    currentSf.findSplitCandidate();
-  } while (reductionFound==true);
+  boolean explodeFound=false;
+  boolean splitFound=false;
 
+
+  currentString=input.lines.get(0);
 
   // Loop through each input item...
-  for (i=0;i<input.lines.size();i++)
+  //for (i=1;i<input.lines.size();i++)
+  for (i=1;i<2;i++)
   {
-  
+    println("===> adding string:"+input.lines.get(i));
+    currentString="["+currentString+","+input.lines.get(i)+"]";
+    println("===> current string set to:"+currentString);
+    
+    currentSf=new Snailfish();
+    currentSf.populate(currentString,0);
+
+    do
+    {
+      explodeFound=false;
+      splitFound=true;
+      
+      sfStack.clear();
+      currentSf.stackNumbers(currentSf);
+      
+      //println("Stack View dump:");
+      //for (j=0;j<sfStack.size();j++)
+      //{
+      //  sfStack.get(j).printTracker();
+      //}
+      
+      explodeFound=currentSf.findExplodeCandidate(currentSf,0);
+      println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
+      
+      sfStack.clear();
+      currentSf.stackNumbers(currentSf);
+      
+      splitFound=currentSf.findSplitCandidate();
+      println("ENCODED:"+currentSf.encodeBackToString(currentSf.left));
+      
+      println("Explode:"+explodeFound+" Split:"+splitFound);
+    } while (explodeFound==true || splitFound==true);
+    
+    println("===> Completed redunction for current string");
   }
-  
 }
 
 void printMasterList()
@@ -230,15 +247,35 @@ public class Snailfish
       }
     }
     
+    // Create a new Snailfish and add it into the tree
     if (sf!=null)
     {
       // Create a new Snailfish number by splitting the 10
       int t=sf.leftValue>10?sf.leftValue:sf.rightValue;
       int left=t/2;
       int right=t-left;
-      println("new left="+left+" new right="+right);
+//println("new left="+left+" new right="+ right);
+      
+      Snailfish nf=new Snailfish();
+      nf.backtrack=sf;
+      nf.leftValue=left;
+      nf.rightValue=right;
+      
+      if (sf.leftValue>10)
+      {
+        sf.leftValue=-1;
+        sf.left=nf;
+        return(true);
+      }
+      
+      if (sf.rightValue>10)
+      {
+        sf.rightValue=-1;
+        sf.right=nf;
+        return(true);
+      }
     }
-    // add the new object back into the tree
+    
     return(false);
   }
   
@@ -255,24 +292,24 @@ public class Snailfish
       rnum=sf.findNumberRight(sf.rightValue);
 println("****   Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rightValue+"], No to Left:"+lnum+" No to Right:"+rnum);
       
-      if (lnum<0)
-      {
-        println("Discard left:"+sf.leftValue);
-      }
-      else
-      {
-        println("lnum becomes:"+lnum);
-      }
+      //if (lnum<0)
+      //{
+      //  println("Discard left:"+sf.leftValue);
+      //}
+      //else
+      //{
+      //  println("lnum becomes:"+lnum);
+      //}
       
-      if (rnum<0)
-      {
-        println("Discard right:"+sf.rightValue);
-      }
-      else
-      {
-        println("rnum becomes:"+rnum);
-      }
-      println("replace node with 0");
+      //if (rnum<0)
+      //{
+      //  println("Discard right:"+sf.rightValue);
+      //}
+      //else
+      //{
+      //  println("rnum becomes:"+rnum);
+      //}
+      //println("replace node with 0");
       
       if (sf.backtrack.left == sf)
       {
