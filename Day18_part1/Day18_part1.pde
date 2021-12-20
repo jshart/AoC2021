@@ -32,10 +32,25 @@ void setup() {
   int i=0,j=0;
 
   Snailfish temp=new Snailfish();
+ 
+  println(input.lines.get(0));
   temp.populate(input.lines.get(0),0);
   //temp.printRawSF(input.lines.get(0));
-  
   temp.printTree(temp,0);
+  
+
+  
+  // we only encode the "left" side of the top object, as the top object is 
+  // really a wrapper for the whole tree and it expands out from under the
+  // first sub-child (which is the left side). its easier to just take the
+  // left side and use that than it is to muddy the code with "exception"
+  // paths to do something special with the object model for the top level
+  println("ENCODED:"+temp.encodeBackToString(temp.left));
+  
+  temp.findDeepNode(temp.left,0);
+  
+  temp.buildStackView(temp);
+  temp.printStackView();
 
   // Loop through each input item...
   for (i=0;i<input.lines.size();i++)
@@ -69,6 +84,8 @@ public class Snailfish
   int rightValue=0;
   
   boolean leftRight=false; // false==left, true==right
+  
+  ArrayList<Snailfish> stackview = new ArrayList<Snailfish>();
   
   public Snailfish()
   {
@@ -138,6 +155,124 @@ public class Snailfish
       }
     }
     return(in.length());
+  }
+  
+  public void findDeepNode(Snailfish sf, int d)
+  {
+    if (sf.left==null && sf.right==null)
+    {
+      println("Deep node found at depth:"+d+" Obj:"+sf+" LV:"+sf.leftValue+" RV:"+sf.rightValue);
+      //backtrackFrom(sf);
+    }
+    if (sf.left!=null)
+    {
+      findDeepNode(sf.left,d+1);
+    }
+    
+    if (sf.right!=null)
+    {
+      findDeepNode(sf.right,d+1);
+    }
+  }
+  
+  public void buildStackView(Snailfish sf)
+  {
+    println("Building stack view for:"+sf);
+    
+    if (sf.left!=null)
+    {
+      buildStackView(sf.left);
+    }
+
+    if (sf.right!=null)
+    {
+      buildStackView(sf.right);
+    }
+    
+    stackview.add(sf);
+  }
+  
+  public void printStackView()
+  {
+    int i=0;
+    int l=stackview.size();
+    
+    println("Stackview size:"+l);
+    
+    for (i=0;i<l;i++)
+    {
+      println(stackview.get(i).printThisSnailfish());
+    }
+    println();
+  }
+  
+  public int backtrackFrom(Snailfish sf)
+  {
+    Snailfish bt=sf.backtrack;
+    
+    print("TRACKING BACK ["+sf+"]");
+    
+    do 
+    {
+      print("--> ["+bt+"]");
+      printNumbersBelow(bt);
+      
+      bt=bt.backtrack;
+    } while (bt.backtrack!=null); // we ignore the very top object as its a special container for the whole tree and not strictly part of the tree
+    println();
+    return(-1); 
+  }
+  
+  public void printNumbersBelow(Snailfish sf)
+  {
+    print("[");
+    if (sf.left!=null)
+    {
+      printNumbersBelow(sf.left);
+    }
+    else
+    {
+      print("L"+sf.leftValue+",");
+    }
+    if (sf.right!=null)
+    {
+      printNumbersBelow(sf.right);
+    }
+    else
+    {
+      print("R"+sf.rightValue+",");
+    }
+    print("]");
+  }
+  
+  public String encodeBackToString(Snailfish sf)
+  {
+    String s=new String();
+    
+    println("Encoding:"+sf);
+    
+    s+="[";
+    
+    if (sf.left!=null)
+    {
+      s+=encodeBackToString(sf.left);
+    }
+    else
+    {
+      s+=sf.leftValue;
+    }
+    s+=",";
+    if (sf.right!=null)
+    {
+      s+=encodeBackToString(sf.right);
+    }
+    else
+    {
+      s+=sf.rightValue;
+    }
+    s+="]";
+    
+    return(s);
   }
   
   public void printTree(Snailfish s, int d)
