@@ -19,6 +19,18 @@ InputFile input = new InputFile("input.txt");
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
+
+ArrayList<StackTracker> sfStack = new ArrayList<StackTracker>();
+
+//ArrayList<Snailfish> stackview;
+
+//String explodeExample=new String("[[[[[9,8],1],2],3],4]");
+//String explodeExample=new String("[7,[6,[5,[4,[3,2]]]]]");
+//String explodeExample=new String("[[6,[5,[4,[3,2]]]],1]");
+//String explodeExample=new String("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]");
+String explodeExample=new String("[[3,[2,[8,0]]],[9,[5,[7,0]]]]");
+
+
 void setup() {
   size(200, 200);
   background(0);
@@ -33,9 +45,11 @@ void setup() {
 
   Snailfish temp=new Snailfish();
  
-  println(input.lines.get(0));
-  temp.populate(input.lines.get(0),0);
-  //temp.printRawSF(input.lines.get(0));
+  String currentString=explodeExample;
+ 
+  println(currentString);
+  temp.populate(currentString,0);
+  //temp.printRawSF(currentString);
   temp.printTree(temp,0);
   
 
@@ -47,10 +61,20 @@ void setup() {
   // paths to do something special with the object model for the top level
   println("ENCODED:"+temp.encodeBackToString(temp.left));
   
-  temp.findDeepNode(temp.left,0);
+  //temp.buildStackView2(temp,stackview);
+  //temp.printStackView();
+  temp.stackNumbers(temp);
   
-  temp.buildStackView(temp);
-  temp.printStackView();
+  for (i=0;i<sfStack.size();i++)
+  {
+    sfStack.get(i).printTracker();
+  }
+  
+  temp.findExplodeCandidate(temp,0);
+
+  println("ENCODED:"+temp.encodeBackToString(temp.left));
+
+
 
   // Loop through each input item...
   for (i=0;i<input.lines.size();i++)
@@ -74,18 +98,36 @@ void draw() {
 
 }
 
+public class StackTracker
+{
+  Snailfish sfRef;
+  boolean leftRight=false; // left==false, right==true
+  int value;
+  
+  public StackTracker(Snailfish sfRef_, boolean leftRight_, int value_)
+  {
+    sfRef=sfRef_;
+    leftRight=leftRight_;
+    value=value_;
+  }
+  
+  public void printTracker()
+  {
+    println("REF:"+sfRef+" handed:"+(leftRight==false?"Left":"Right")+" V:"+value);
+  }
+}
+
 public class Snailfish
 {
   Snailfish backtrack=null;
   Snailfish left=null;;
   Snailfish right=null;
   String exp=null;
-  int leftValue=0;
-  int rightValue=0;
+  int leftValue=-1;
+  int rightValue=-1;
   
   boolean leftRight=false; // false==left, true==right
   
-  ArrayList<Snailfish> stackview = new ArrayList<Snailfish>();
   
   public Snailfish()
   {
@@ -157,53 +199,279 @@ public class Snailfish
     return(in.length());
   }
   
-  public void findDeepNode(Snailfish sf, int d)
+  public void findExplodeCandidate(Snailfish sf, int d)
   {
+    int lnum=0;
+    int rnum=0;
     if (sf.left==null && sf.right==null)
     {
-      println("Deep node found at depth:"+d+" Obj:"+sf+" LV:"+sf.leftValue+" RV:"+sf.rightValue);
+println("Before update:["+sf.leftValue+","+sf.rightValue+"]");
+      lnum=sf.findNumberLeft(sf.leftValue);
+      rnum=sf.findNumberRight(sf.rightValue);
+println("Explode candidate at depth:"+d+" Obj:"+sf+", ["+sf.leftValue+","+sf.rightValue+"], No to Left:"+lnum+" No to Right:"+rnum);
+      
+      if (lnum<0)
+      {
+        println("Discard left:"+sf.leftValue);
+      }
+      else
+      {
+        println("lnum becomes:"+lnum);
+      }
+      
+      if (rnum<0)
+      {
+        println("Discard right:"+sf.rightValue);
+      }
+      else
+      {
+        println("rnum becomes:"+rnum);
+      }
+      println("replace node with 0");
+      
+      if (sf.backtrack.left == sf)
+      {
+        sf.backtrack.leftValue=0;
+        sf.backtrack.left=null;
+      }
+      if (sf.backtrack.right == sf)
+      {
+        sf.backtrack.rightValue=0;
+        sf.backtrack.right=null;
+      }
+      
       //backtrackFrom(sf);
     }
     if (sf.left!=null)
     {
-      findDeepNode(sf.left,d+1);
+      findExplodeCandidate(sf.left,d+1);
     }
     
     if (sf.right!=null)
     {
-      findDeepNode(sf.right,d+1);
+      findExplodeCandidate(sf.right,d+1);
     }
   }
-  
-  public void buildStackView(Snailfish sf)
+
+  public void stackNumbers(Snailfish sf)
+  {  
+    if (sf.left!=null)
+    {
+      stackNumbers(sf.left);
+    }
+    else
+    {
+      sfStack.add(new StackTracker(sf,false,sf.leftValue));
+    }
+ 
+    if (sf.right!=null)
+    {
+      stackNumbers(sf.right);
+    }
+    else
+    {
+      sfStack.add(new StackTracker(sf,true,sf.rightValue));
+    }
+  }
+
+  public String encodeBackToString(Snailfish sf)
   {
-    println("Building stack view for:"+sf);
+    String s=new String();
+    
+//println("Encoding:"+sf);
+    
+    s+="[";
     
     if (sf.left!=null)
     {
-      buildStackView(sf.left);
+      s+=encodeBackToString(sf.left);
+    }
+    else
+    {
+      s+=sf.leftValue;
+    }
+    s+=",";
+    if (sf.right!=null)
+    {
+      s+=encodeBackToString(sf.right);
+    }
+    else
+    {
+      s+=sf.rightValue;
+    }
+    s+="]";
+    
+    return(s);
+  }
+  
+  public ArrayList<Snailfish> buildStackView(Snailfish sf)
+  { 
+    ArrayList<Snailfish> temp = new ArrayList<Snailfish>();
+    
+    if (sf.left!=null)
+    {
+      temp.addAll(buildStackView(sf.left));
+    }
+    else
+    {
+      //temp.add(sf);
     }
 
     if (sf.right!=null)
     {
-      buildStackView(sf.right);
+      temp.addAll(buildStackView(sf.right));
+    }
+    else
+    {
+      //temp.add(sf);
     }
     
-    stackview.add(sf);
+    if (sf.right==null || sf.left==null)
+    {
+      temp.add(sf);
+    }
+     
+    return(temp);
+  }
+  
+  public void buildStackView2(Snailfish sf, ArrayList<Snailfish> list)
+  {     
+    if (sf.left!=null)
+    {
+            list.add(sf);
+
+      buildStackView2(sf.left,list);
+    }
+    else
+    {
+      //temp.add(sf);
+      list.add(sf);
+    }
+
+    if (sf.right!=null)
+    {
+            list.add(sf);
+
+      buildStackView2(sf.right, list);
+    }
+    else
+    {
+      //temp.add(sf);
+      list.add(sf);
+    }
+    
+    //if (sf.right==null && sf.left==null)
+    //{
+    //  list.add(sf);
+    //}
+     
+    return;
   }
   
   public void printStackView()
   {
     int i=0;
-    int l=stackview.size();
+    int l=sfStack.size();
     
     println("Stackview size:"+l);
     
     for (i=0;i<l;i++)
     {
-      println(stackview.get(i).printThisSnailfish());
+      println(sfStack.get(i).sfRef.printThisSnailfish());
     }
     println();
+  }
+  
+  public int findObjectInStackView()
+  {
+    int i=0;
+    int l=sfStack.size();
+    Snailfish sf;
+    
+print("i="+i+" l="+l+"Searching for:"+this);
+        
+    for (i=0;i<l;i++)
+    {
+      sf=sfStack.get(i).sfRef;
+println("comparing:"+sf+" with "+this);
+      if (sf==this)
+      {
+println(" found");
+        return(i);
+      }
+    }
+println(" NOT found");
+    return(-1);
+  }
+  
+  public int findNumberLeft(int addNum)
+  {
+    // start by finding this object in the stackview
+    int index=findObjectInStackView();
+    
+    if (index<0)
+    {
+      return(-1);
+    }
+    
+    int i=0;
+    Snailfish t;
+    for (i=index-1;i>=0;i--)
+    {
+      t=sfStack.get(i).sfRef;
+      
+      if (t!=this)
+      {
+      if (t.right==null)
+      {
+sfStack.get(i).printTracker();
+        t.rightValue+=addNum;
+        return(t.rightValue);
+      }
+      if (t.left==null)
+      {
+sfStack.get(i).printTracker();
+        t.leftValue+=addNum;
+        return(t.leftValue);
+      }
+      }
+    }
+    return(-1);
+  }
+  
+  public int findNumberRight(int addNum)
+  {
+    // start by finding this object in the stackview
+    int index=findObjectInStackView();
+    
+    if (index<0)
+    {
+      return(-1);
+    }
+    
+    int i=0;
+    Snailfish t;
+    for (i=index+1;i<sfStack.size();i++)
+    {
+      t=sfStack.get(i).sfRef;
+
+      if (t!=this)
+      {
+      if (t.left==null)
+      {
+sfStack.get(i).printTracker();
+        t.leftValue+=addNum;
+        return(t.leftValue);
+      }
+      if (t.right==null)
+      {
+sfStack.get(i).printTracker();
+        t.rightValue+=addNum;
+        return(t.rightValue);
+      }
+      }
+    }
+    return(-1);
   }
   
   public int backtrackFrom(Snailfish sf)
@@ -245,35 +513,7 @@ public class Snailfish
     print("]");
   }
   
-  public String encodeBackToString(Snailfish sf)
-  {
-    String s=new String();
-    
-    println("Encoding:"+sf);
-    
-    s+="[";
-    
-    if (sf.left!=null)
-    {
-      s+=encodeBackToString(sf.left);
-    }
-    else
-    {
-      s+=sf.leftValue;
-    }
-    s+=",";
-    if (sf.right!=null)
-    {
-      s+=encodeBackToString(sf.right);
-    }
-    else
-    {
-      s+=sf.rightValue;
-    }
-    s+="]";
-    
-    return(s);
-  }
+
   
   public void printTree(Snailfish s, int d)
   {
