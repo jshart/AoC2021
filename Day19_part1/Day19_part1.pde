@@ -185,6 +185,11 @@ public class Beacon
     int i=0;
     int l=beaconGroup.size();
     Beacon b;
+    
+    // this allows us to filter/ignore certain groups if we're not interested in them.
+    if (l!=3)
+      return;
+    
     stroke(255,255,255);
     
     pushMatrix();
