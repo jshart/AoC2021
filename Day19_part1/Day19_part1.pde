@@ -13,6 +13,11 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 //HashMap<Long, Long> memoryMap = new HashMap<Long, Long>();
 
 
+// NOTES: there is a tendancy for most beacons to be deployed into small clusters of 3 nodes
+// with some scanners having a small (1-3) number of beacons very close to them. If we group the
+// beacons into 3's perhaps that would help us work out the relationships, as they'd form a triangle,
+// which could potentially be a unique signature to look for?
+
 // Raw input and parsed input lists for *all data*
 InputFile input = new InputFile("input.txt");
 
@@ -22,7 +27,7 @@ ArrayList<String> masterList = new ArrayList<String>();
 ArrayList<Scanner> scannerList = new ArrayList<Scanner>();
 
 void setup() {
-  size(800, 800, P3D);
+  size(1200, 1200, P3D);
   background(0);
   stroke(255);
   frameRate(30);
@@ -80,6 +85,7 @@ void setup() {
   for (i=0;i<scannerList.size();i++)
   {
     scannerList.get(i).printScanner();
+    scannerList.get(i).pairUpBeacons();
   }
 }
 
@@ -93,25 +99,107 @@ void printMasterList()
 }
 
 int degree=0;
+int drawIndex=0;
+int ztranslate=-2000;
 void draw()
 { 
   background(0);
   noStroke();
-  translate(500,500,-500);
+  translate(500,500,ztranslate);
   rotateX(radians(degree));
   rotateY(radians(degree));
-  scannerList.get(0).drawScanner();
+  rotateZ(radians(degree));
+  scannerList.get(drawIndex).drawScanner();
+  
+
   
   degree=(degree>360?0:degree+1);
 }
 
+void keyPressed()
+{
+  switch (key)
+  {
+    case 'q':
+      drawIndex=(drawIndex==scannerList.size()-1?0:drawIndex+1);
+      println("Draw Index updated to:"+drawIndex);
+      break;
+    case 'z':
+      drawIndex=(drawIndex==0?scannerList.size()-1:drawIndex-1);
+      println("Draw Index updated to:"+drawIndex);
+      break;
+    case 'w':
+      ztranslate-=100;
+      break;
+    case 's':
+      ztranslate+=100;
+      break;
+  }
+}
+
+public class Beacon
+{
+  PVector position = new PVector();
+  int distanceFromScanner=0;
+  Beacon nearest;
+  int beaconSize=20;
+
+  
+  public Beacon(int x, int y, int z)
+  {
+    position.set(x,y,z);
+    distanceFromScanner=(int)PVector.dist(position, new PVector(0,0,0));
+  }
+  
+  public void findNearest(ArrayList<Beacon> bl)
+  {
+    int i=0;
+    int l=bl.size();
+    Minimum min = new Minimum();
+    int d=0;
+    Beacon b;
+    
+    for (i=0;i<l;i++)
+    {
+      b=bl.get(i);
+      
+      // dont check this beacon... but all others
+      if (this!=b)
+      {
+        if (min.set((long)position.dist(b.position))==true)
+        {
+          nearest=b;
+        }
+      }
+    }
+  }
+  
+  public void drawBeacon(PVector scannerLocation)
+  {
+    PVector location = new PVector();
+    
+    location.set(scannerLocation);
+    location.add(position);
+    
+    //fill(random(255),random(255),random(255));
+    pushMatrix();
+    fill(255,255,0);
+    translate(location.x,location.y,location.z);
+    sphere(beaconSize);
+    popMatrix();
+    
+    stroke(255,255,255);
+    line(position.x,position.y,position.z,nearest.position.x,nearest.position.y,nearest.position.z);
+    noStroke();
+  }
+}
+
 public class Scanner
 {
-  ArrayList<PVector> beacons = new ArrayList<PVector>();
+  ArrayList<Beacon> beacons = new ArrayList<Beacon>();
   int scannerID=0;
   
   int scannerSize=40;
-  int beaconSize=20;
   
   PVector scannerLocation=new PVector(0,0,0);
   
@@ -123,7 +211,8 @@ public class Scanner
   public void parseBeacon(String input)
   {
     String[] nums=input.split(",");
-    PVector t=new PVector(Integer.parseInt(nums[0]),Integer.parseInt(nums[1]),Integer.parseInt(nums[2]));
+    Beacon t=new Beacon(Integer.parseInt(nums[0]),Integer.parseInt(nums[1]),Integer.parseInt(nums[2]));
+    
     beacons.add(t);
   }
   
@@ -135,31 +224,18 @@ public class Scanner
     
     for (i=0;i<l;i++)
     {
-      t=beacons.get(i);
-      println(" |=B:"+t.x+","+t.y+","+t.z);
+      t=beacons.get(i).position;
+      println(" |=B:"+t.x+","+t.y+","+t.z+" DIST:"+beacons.get(i).distanceFromScanner);
     }
   }
   
   public void printScanner()
   {
-    println("*** SCANNER:"+scannerID+" Can see;");
+    println("*** SCANNER:"+scannerID+" Can see "+beacons.size()+" beacons;");
     printBeacons();
   }
   
-  public void drawBeacon(PVector b)
-  {
-    PVector location = new PVector();
-    
-    location.set(scannerLocation);
-    location.add(b);
-    
-    //fill(random(255),random(255),random(255));
-    pushMatrix();
-    fill(255,255,0);
-    translate(location.x,location.y,location.z);
-    sphere(beaconSize);
-    popMatrix();
-  }
+
   
   public void drawScanner()
   {
@@ -179,15 +255,31 @@ public class Scanner
 
     int i=0;
     int l=beacons.size();
-    PVector t;
+    Beacon b;
+    
+    for (i=0;i<l;i++)
+    {
+      b=beacons.get(i);
+      b.drawBeacon(scannerLocation);
+    }
+    
+    stroke(255,0,0);
+    noFill();
+    box(2000,2000,2000);
+  }
+  
+  public void pairUpBeacons()
+  {
+    int i=0;
+    int l=beacons.size();
+    Beacon t;
     
     for (i=0;i<l;i++)
     {
       t=beacons.get(i);
-      drawBeacon(t);
+      t.findNearest(beacons);
     }
   }
-  
 }
 
 
@@ -328,7 +420,7 @@ public class Minimum
   {
   }
 
-  public void set(long v)
+  public boolean set(long v)
   {
     // Always set if this is the first time, but subsequently only set
     // if its less as we're trying to track the shortest distant. This
@@ -337,14 +429,17 @@ public class Minimum
     {
       value=v;
       set=true;
+      return(true);
     }
     else
     {
       if (v<value)
       {
         value=v;
+        return(true);
       }
     }
+    return(false);
   }
 }
 
