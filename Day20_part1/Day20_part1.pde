@@ -18,14 +18,27 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 // mark a parameter?
 
 
+String exampleIEA=new String("..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#");
+String myIEA=new      String("#.#.#.#.#......#.#.#.#.##..#.##.##..#..##...#.#.#.#...##.##.##.###....#..#...#.#..###.#...#..##.#.###..#..####.###...#.#.#..##..##.##..##..###..#....#.#....#####.#...###...#.#....###...#..##.##..#..#.##..###..#.##.###..#.####...#.##.....#.###...#.##.##.#.#######...#.###..##..##..#.#.#.#####...#....#.....##.#.#...##.######....#..#......#.#.#.#.##...######.#.#####..#####..#.#.#.#.###.#.#....#..##..#..#.#.#..##....##..#.#.......##...#..####.####.#.#..#.###..#...#......###...#...#.##.#.####..#.#....###.####..#.");
+String useIEA=myIEA;
+
+int borderSize=256;
+int gs=1;
+
 // Raw input and parsed input lists for *all data*
 InputFile input = new InputFile("input.txt");
 
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
+GameBoard board1;
+GameBoard board2;
+GameBoard currentBoard;
+GameBoard nextBoard;
+
+
 void setup() {
-  size(200, 200);
+  size(1024, 1024);
   background(0);
   stroke(255);
   frameRate(10);
@@ -37,11 +50,27 @@ void setup() {
   int i=0,j=0;
 
   // Loop through each input item...
-  for (i=0;i<input.lines.size();i++)
-  {
+  //for (i=0;i<input.lines.size();i++)
+  //{
+  //}
   
-  }
+  int maxX=input.lines.get(0).length();
+  int maxY=input.lines.size();
   
+  board1 = new GameBoard(maxX,maxY);
+  board1.loadBoard();
+  currentBoard=board1;
+  board2 = new GameBoard(maxX,maxY);
+  nextBoard=board2;
+}
+
+public void swapBoards()
+{
+  GameBoard temp;
+  temp=currentBoard;
+  currentBoard=nextBoard;
+  nextBoard=temp;
+  nextBoard.resetBoard();
 }
 
 void printMasterList()
@@ -53,9 +82,198 @@ void printMasterList()
   }
 }
 
+int iterations=0;
+void draw()
+{  
+  background(0);
+//println("useIEA:"+useIEA);
 
-void draw() {  
+  currentBoard.drawBoard();
+  println("Count for iteration:"+iterations+" is:"+currentBoard.countBoard2());
 
+  currentBoard.updateBoardTo(nextBoard,useIEA);
+  swapBoards();
+  iterations++;
+  
+  stroke(0,0,255);
+  noFill();
+  rect(borderSize/2,borderSize/2,currentBoard.maxX-borderSize,currentBoard.maxY-borderSize);
+  
+  if (iterations==51)
+  {
+    noLoop();
+  }
+}
+
+public class GameBoard
+{
+  int[][] content;
+  int maxX=0;
+  int maxY=0;
+  int textMaxX=0;
+  int textMaxY=0;
+  
+  public GameBoard(int maxX_, int maxY_)
+  {
+    textMaxX=maxX_;
+    textMaxY=maxY_;
+    // we add 2x the border size to each axis, so that we have a border all around
+    maxX=maxX_+(borderSize*2);
+    maxY=maxY_+(borderSize*2);
+    
+    content=new int[maxX][maxY];
+  }
+  
+  public void loadBoard()
+  {
+    int x=0,y=0;
+    
+    // we need to i
+    
+    // load the board into the middle of the space...
+    for (x=0;x<textMaxX;x++)
+    {
+      for (y=0;y<textMaxY;y++)
+      {
+        content[x+borderSize][y+borderSize]=input.lines.get(y).charAt(x)=='#'?1:0;
+      }
+    }
+  }
+  
+  public void resetBoard()
+  {
+    int x=0,y=0;
+    
+    for (x=0;x<maxX;x++)
+    {
+      for (y=0;y<maxY;y++)
+      {
+        content[x][y]=0;
+      }
+    }
+  }
+  
+  public int countBoard()
+  {
+    int x=0,y=0;
+    
+    int count=0;
+    
+    for (x=1;x<maxX-1;x++)
+    {
+      for (y=1;y<maxY-1;y++)
+      {
+        count+=(content[x][y]==1?1:0);
+      }
+    }
+    return(count);
+  }
+  
+  public int countBoard2()
+  {
+    int x=0,y=0;
+    
+    int count=0;
+    
+    for (x=borderSize/2;x<maxX-(borderSize/2);x++)
+    {
+      for (y=borderSize/2;y<maxY-(borderSize/2);y++)
+      {
+        count+=(content[x][y]==1?1:0);
+      }
+    }
+    return(count);
+  }
+  
+  public void updateBoardTo(GameBoard g, String iea)
+  {
+    int x=0,y=0;
+    
+    clearEdges();
+    
+    // for now lets ignore the very edges...
+    for (x=1;x<maxX-1;x++)
+    {
+      for (y=1;y<maxY-1;y++)
+      {
+        //println("IEA:"+iea);
+        //println("mask:"+getInputMask(x,y));
+        g.content[x][y]=(iea.charAt(getInputMask(x,y))=='#'?1:0);
+      }
+    }
+    g.clearEdges();
+  }
+  
+  public void clearEdges()
+  {
+    int i=0;
+    for (i=0;i<maxX;i++)
+    {
+      content[i][0]=0;
+      content[i][maxY-1]=0;
+    }
+    
+    for (i=0;i<maxY;i++)
+    {
+      content[0][i]=0;
+      content[maxX-1][i]=0;
+    }
+  }
+  
+  public int getInputMask(int x, int y)
+  {
+    int result=0;
+    int xs=x-1;
+    int xe=x+1;
+    int ys=y-1;
+    int ye=y+1;
+    int xi=0,yi=0;
+    
+    String output = new String();
+    
+    for (yi=ys;yi<=ye;yi++)
+    {
+      for (xi=xs;xi<=xe;xi++)
+      {
+        // is a valid point in the input?
+        if (xi>=0 && xi<maxX && yi>=0 && yi<maxY)
+        {
+          output+=(content[xi][yi]==1?'1':'0');
+        }
+        else
+        {
+          //println("error - border detected");
+        }
+      }
+    }
+    
+//println("X,Y:"+x+","+y+" O:"+output);
+    result=Integer.parseInt(output,2);
+    
+    return(result);
+  }
+  
+  public void drawBoard()
+  {
+    int x=0,y=0;
+    
+    for (x=0;x<maxX;x++)
+    {
+      for (y=0;y<maxY;y++)
+      {
+        if (content[x][y]==1)
+        {
+          stroke(255,255,255);
+          fill(255,0,0);
+          rect(x*gs,y*gs,gs,gs);
+          
+          stroke(0,255,0);
+          noFill();
+          rect(x*gs,y*gs,gs,gs);
+        }
+      }
+    }
+  }
 }
 
 
