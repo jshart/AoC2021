@@ -87,6 +87,12 @@ void setup() {
     scannerList.get(i).printScanner();
     scannerList.get(i).pairUpBeacons();
   }
+  
+  // for each scanner build the beacon groups
+  for (i=0;i<scannerList.size();i++)
+  {
+    scannerList.get(i).buildBeaconGroup();
+  }
 }
 
 void printMasterList()
@@ -143,12 +149,56 @@ public class Beacon
   int distanceFromScanner=0;
   Beacon nearest;
   int beaconSize=20;
+  
+  ArrayList<Beacon> beaconGroup = new ArrayList<Beacon>();
+  PVector groupCenter= new PVector();
 
   
   public Beacon(int x, int y, int z)
   {
     position.set(x,y,z);
     distanceFromScanner=(int)PVector.dist(position, new PVector(0,0,0));
+  }
+  
+  public void drawBeacon(PVector scannerLocation)
+  {
+    PVector location = new PVector();
+    
+    location.set(scannerLocation);
+    location.add(position);
+    
+    //fill(random(255),random(255),random(255));
+    pushMatrix();
+    fill(255,255,0);
+    translate(location.x,location.y,location.z);
+    sphere(beaconSize);
+    popMatrix();
+    
+    //stroke(255,255,255);
+    //line(position.x,position.y,position.z,nearest.position.x,nearest.position.y,nearest.position.z);
+    //noStroke();
+    drawBeaconGroup();
+  }
+  
+  public void drawBeaconGroup()
+  {
+    int i=0;
+    int l=beaconGroup.size();
+    Beacon b;
+    stroke(255,255,255);
+    
+    pushMatrix();
+    translate(groupCenter.x,groupCenter.y,groupCenter.z);
+    sphere(beaconSize/3);
+    popMatrix();
+
+    for(i=0;i<l;i++)
+    {
+      b=beaconGroup.get(i);
+      line(b.position.x,b.position.y,b.position.z,groupCenter.x,groupCenter.y,groupCenter.z);
+    }
+    noStroke();
+
   }
   
   public void findNearest(ArrayList<Beacon> bl)
@@ -174,23 +224,48 @@ public class Beacon
     }
   }
   
-  public void drawBeacon(PVector scannerLocation)
+  public void buildBeaconGroup(ArrayList<Beacon> bl)
   {
-    PVector location = new PVector();
+    int i=0;
+    int l=bl.size();
+    Beacon b;
+    int x=0, y=0, z=0;
+        
+    // for each element in the beacon list, see if
+    // that element has listed this one as its
+    // nearest neighbour, if it has then its part
+    // of the same group.
+    for (i=0;i<l;i++)
+    {
+      b=bl.get(i);
+      
+      // did the beacon in the list mark us as its nearest
+      // neighbour?
+      if (b.nearest==this)
+      {
+        // add the beacon to our beacon group
+        beaconGroup.add(b);
+        
+        // calculate the average
+        x+=b.position.x;
+        y+=b.position.y;
+        z+=b.position.z;
+      }
+    }
     
-    location.set(scannerLocation);
-    location.add(position);
+    // finally add ourselves to the group
+    beaconGroup.add(this);
+    x+=position.x;
+    y+=position.y;
+    z+=position.z;
     
-    //fill(random(255),random(255),random(255));
-    pushMatrix();
-    fill(255,255,0);
-    translate(location.x,location.y,location.z);
-    sphere(beaconSize);
-    popMatrix();
-    
-    stroke(255,255,255);
-    line(position.x,position.y,position.z,nearest.position.x,nearest.position.y,nearest.position.z);
-    noStroke();
+    i=beaconGroup.size();
+    if (i>0)
+    {
+      print("SET GROUP, size:"+i);
+      groupCenter.set(x/i,y/i,z/i);
+      println(" group centre at:"+(x/i)+","+(y/i)+","+(z/i));
+    }
   }
 }
 
@@ -278,6 +353,21 @@ public class Scanner
     {
       t=beacons.get(i);
       t.findNearest(beacons);
+    }
+  }
+  
+  public void buildBeaconGroup()
+  {
+    int i=0;
+    int l=beacons.size();
+    Beacon t;
+    
+    // for each beacon this scanner can see
+    // build a group for it to be a member of
+    for (i=0;i<l;i++)
+    {
+      t=beacons.get(i);
+      t.buildBeaconGroup(beacons);
     }
   }
 }
