@@ -38,6 +38,8 @@ No of times (N)7 appeared (M)6 ######
 No of times (N)8 appeared (M)3 ###
 No of times (N)9 appeared (M)1 #
 
+int[] distribution={0,0,0,1,3,6,7,6,3,1};
+
 so if you maintain 10 buckets for the "spaces" the player can be on, each turn you can take the number of existing "worlds" in a given bucket and multiple it by the above distributions to create a new number of worlds in the respective buckets. then repeat.
 
 2 things I cant get my head around yet - you start from the "start position" bucket and I'm not quite sure about the order of "updates" you need to do after that.
@@ -47,6 +49,18 @@ i think I've got it - you end the game at 21, so there is a very small space of 
 each turn you take each cell that represents a bucket of worlds in the same "score-square" that has the same score, you fork the worlds as per the distribution above, and calculate the score for the new worlds based on the cell you just came from and the score for their specific distribution, then update the matrix with the new score-slot values. repeat until one or more of those cells is 21 or more.
 
 
+>>> import math
+>>> print(math.log(729,27))
+2.0
+>>> print(math.log(444356092776315,27))
+10.233409218633081
+>>> print(math.log(341960390180808,27))
+10.153935825310045
+>>> pow(27,10)
+205891132094649
+>>> pow(27,11)
+5559060566555523
 
+need to run about 10 hands before a win?
 
 

@@ -34,11 +34,13 @@ long diceRolls=0;
 boolean turn=true;
 
 // This is the distribution matrix for a normal distribution 
-int[] distribution={0,0,0,1,3,6,7,6,3,1};
+long[] distribution={0,0,0,1,3,6,7,6,3,1};
 GameBoard gb1=new GameBoard();
 GameBoard gb2=new GameBoard();
 GameBoard currentBoard=gb1;
 GameBoard nextBoard=gb2;
+
+final int maxScoreTracked=100;
 
 void setup() {
   size(200, 200);
@@ -52,68 +54,37 @@ void setup() {
   
   int i=0,j=0,k=0;
 
-  //// Loop through each input item...
-  //for (i=0;i<input.lines.size();i++)
-  //{
-  
-  //}
-  //printDiceTable(); 
-  
-  //// until someone wins
-  //while (p1Score<1000 && p2Score<1000)
-  //{
-  //  // calculate the new score by adding up the next 3 dice rolls
-  //  diceTotal=(dice++)+(dice++)+(dice++);
-  //  print("Dice:"+diceTotal+" ");
-  //  diceRolls+=3;
+  printDiceTable(); 
 
-  //  // p1 turn==true, p2 turn==false
-  //  if (turn==true)
-  //  {
-  //    // What is this players new score 
-  //    rem=(diceTotal + p1Board) % 10;
-  //    // space '0' is actually treated as '10'
-  //    rem=(rem==0?10:rem);
-  //    p1Score+=rem;
-  //    p1Board=rem;
-      
-  //    print("P1:"+p1Board+","+p1Score);
-  //    println();
-  //  }
-  //  else
-  //  {
-  //    // What is this players new score 
-  //    rem=(diceTotal + p2Board) % 10;
-  //    // space '0' is actually treated as '10'
-  //    rem=(rem==0?10:rem);
-  //    p2Score+=rem;
-  //    p2Board=rem;
-      
-  //    print("P2:"+p2Board+","+p2Score);
-  //    println();
-  //  }
-  //  // switch players
-  //  turn=!turn;
-  //}
-  //println("Rolls:"+diceRolls);
-  //println("P1 score:"+diceRolls*p1Score);
-  //println("P2 score:"+diceRolls*p2Score);
   
-  currentBoard.updateWorldCountByScore(p1StartingScore,p1StartingScore,1);
+  // TODO - mental note, the starting score *should not be counted and currently is*
+  // at some point I need to code a "special case" where this seed world value is not
+  // included in the score when we first fork. - I THINK THIS IS NOW SOLVED?
+  
+  //currentBoard.updateWorldCountByScore(p1StartingScore,p1StartingScore,1);
+  
+  int iterations=1;
+  currentBoard.forkWorlds(currentBoard,p1StartingScore,0);
   currentBoard.printBoard();
   
-  int iterations=0;
+
   boolean winner=false;
   while (winner==false)
   {
-    nextBoard.resetBoard();
+    //currentBoard.forkForOtherPlayersTurn(); // speculative!
+    //currentBoard.printBoard();
+
     winner=currentBoard.takeTurn(nextBoard);
     
     println("**** AFTER ITERATIONS="+iterations);
     nextBoard.printBoard();
+    
     swapBoards();
+    nextBoard.resetBoard();
+
     iterations++;
   }
+  println("**** EXITING because winner found");
 }
 
 public void swapBoards()
@@ -129,22 +100,66 @@ public class GameBoard
   // 1-10 == score squares 1-10 - note '0' is not used, we skip this index.
   // 0-21 == number of "worlds" that currently have that score. bottom part of this table will
   // always remain empty as the worlds start with scores, but we leave the array fullsized
-  // to make indexing clean - note we also make it 22, so we can ignore 0-indexing and actually
+  // to make indexing clean - note we also make it maxScoreTracked, so we can ignore 0-indexing and actually
   // assign worlds with score x into cell x.
-  long[][] gb=new long[11][23];
+  
+  // for some reason Java doesnt like us using a var to define the size of this array, so 50 needs to be the same
+  // as maxScoreTracked
+  long[][] gb=new long[11][maxScoreTracked];
+  
+  public GameBoard()
+  {
+    //  gb=new long[11][maxScoreTracked];
+  }
   
   void printBoard()
   {
+    long totalWorlds=0;
     int i=0,j=0;
+    int bucketsFound=0;
+    
+    //print("###############");
+    for (i=0;i<9;i++)
+    {
+      print(i+"                   ");
+      //for (j=0;j<10;j++)
+      //{
+      //  print(" ");
+      //}
+      //print(i);
+    }
+    println();
+    //print("###############");
+    for (i=0;i<9;i++)
+    {
+      for (j=0;j<10;j++)
+      {
+        print(j+" ");
+      }
+    }
+    println();
+  
     for (i=0;i<11;i++)
     {
-      print("Index:"+i+" worlds:");
-      for (j=0;j<22;j++)
+      //print("Index:"+i+" worlds:");
+      for (j=0;j<maxScoreTracked;j++)
       {
-        print(gb[i][j]+",");
+        if (gb[i][j]==0)
+        {
+          print("_,");
+        }
+        else
+        {
+          //print(gb[i][j]+",");
+          print("#,");
+
+          totalWorlds+=gb[i][j];
+          bucketsFound++;
+        }
       }
       println();
     }
+    println("**** TOTAL WORLDS for this round;"+totalWorlds+" across:"+bucketsFound+" buckets");
   }
 
   public void updateWorldCountByScore(int scoreSpace,int score, long worlds)
@@ -155,14 +170,14 @@ public class GameBoard
   public boolean takeTurn(GameBoard updateBoard)
   {
     int scoreSquare=0,score=0;
-    boolean winner=false;
+    boolean finished=true;
     
     // for each square along the board...
-    for (scoreSquare=0;scoreSquare<10;scoreSquare++)
+    for (scoreSquare=0;scoreSquare<11;scoreSquare++)
     {
       // for each set of worlds with a given score
       // at this location on the board
-      for (score=0;score<23;score++)
+      for (score=0;score<maxScoreTracked-1;score++)
       {
         // do any worlds exist in this state?
         if (gb[scoreSquare][score]!=0)
@@ -170,23 +185,44 @@ public class GameBoard
           // Yes - we need to fork this set of worlds
           // using the distribution matrix to create
           // new worlds
-          winner=forkWorlds(updateBoard,scoreSquare,score);
-          if (winner==true)
+          if (forkWorlds(updateBoard,scoreSquare,score)==false)
           {
-            return(true);
+            finished=false;
           }
         }
       }
     }
-    return(false);
+    return(finished);
+  }
+  
+  public void forkForOtherPlayersTurn()
+  {
+    int scoreSquare=0;
+    int score=0;
+    // for each square along the board...
+println("**** starting fork");
+    for (scoreSquare=0;scoreSquare<11;scoreSquare++)
+    {
+      // for each set of worlds with a given score
+      // at this location on the board
+      for (score=0;score<maxScoreTracked-1;score++)
+      {
+        // do any worlds exist in this state?
+        if (gb[scoreSquare][score]!=0)
+        {
+          gb[scoreSquare][score]*=27L;
+        }
+      }
+    }
   }
   
   public boolean forkWorlds(GameBoard updateBoard,int scoreSquare, int score)
   {
-    int d=0;
+    long d=0;
     long worlds=gb[scoreSquare][score]; // count of the number of worlds at this point on the board with a given score
-    int newLocation=0;
-    int newScore=0;
+    long newLocation=0;
+    long newScore=0;
+    boolean finished=true;
     
     // fork the input worlds for each of the possible
     // dice outcomes...
@@ -195,11 +231,10 @@ public class GameBoard
       // some permutations are impossible - we can skip these, we could do this
       // in the loop above and save a bit of processing, but the code is a bit
       // cleaner this way (and would work if we changed the type of dice)
-      if (distribution[d]!=0)
-      {
-        
+      if (distribution[(int)d]!=0)
+      {        
         // work out the new board location where the player now resides in this world
-        newLocation=scoreSquare+distribution[d]; 
+        newLocation=scoreSquare+distribution[(int)d]; 
 //println("Newlocation calculated to:"+newLocation+" from dist:"+distribution[d]);
         // wrap around if needed
         newLocation=newLocation>10?newLocation-10:newLocation;
@@ -211,14 +246,18 @@ public class GameBoard
         // with any existing values, as previous world expansions this round may
         // already resulted in worlds existing in this state
         
-        if (newScore>21)
+        if (newScore<21)
         {
-          return(true);
+          finished=false;
         }
-        updateBoard.gb[newLocation][newScore]+=worlds;
+//print("updating board for newLocation:"+newLocation+" with a score of;"+newScore);
+//println(" currently equal:"+updateBoard.gb[(int)newLocation][(int)newScore]+" proposing to add;"+((worlds==0?1:worlds)*distribution[(int)d]));
+        updateBoard.gb[(int)newLocation][(int)newScore]+=((worlds==0?1:worlds)*distribution[(int)d]);
+//println("updating board for newLocation:"+newLocation+" with a score of;"+newScore);
+//println("now equal:"+updateBoard.gb[newLocation][newScore]);
       }
     }
-    return(false);
+    return(finished);
   }
   
   public void resetBoard()
@@ -226,7 +265,7 @@ public class GameBoard
     int i=0,j=0;
     for (i=0;i<11;i++)
     {
-      for (j=0;j<23;j++)
+      for (j=0;j<maxScoreTracked;j++)
       {
         gb[i][j]=0;
       }
@@ -239,6 +278,8 @@ void printDiceTable()
   int total=0;
   int table[] = new int[10];
   int i=0,j=0,k=0;
+  
+
 
   for (i=1;i<4;i++)
   {
@@ -253,6 +294,7 @@ void printDiceTable()
     }
   }
   
+  total=0;
   for (i=0;i<10;i++)
   {
     print("No of times (N)"+i+" appeared (M)"+table[i]+" ");
@@ -261,7 +303,9 @@ void printDiceTable()
       print("#");
     }
     println();
+    total+=table[i];
   }
+  println("Total worlds generated;"+total);
 }
 
 void printMasterList()
