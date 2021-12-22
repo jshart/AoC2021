@@ -24,11 +24,21 @@ long p1Score=0;
 long p2Board=4;
 long p2Score=0;
 
+int p1StartingScore=4;
+int p2StartingScore=8;
+
 long dice=1;
 long rem=0;
 long diceTotal=0;
 long diceRolls=0;
 boolean turn=true;
+
+// This is the distribution matrix for a normal distribution 
+int[] distribution={0,0,0,1,3,6,7,6,3,1};
+GameBoard gb1=new GameBoard();
+GameBoard gb2=new GameBoard();
+GameBoard currentBoard=gb1;
+GameBoard nextBoard=gb2;
 
 void setup() {
   size(200, 200);
@@ -47,31 +57,7 @@ void setup() {
   //{
   
   //}
-  int total=0;
-  int table[] = new int[10];
-  for (i=1;i<4;i++)
-  {
-    for (k=1;k<4;k++)
-    {
-      for (j=1;j<4;j++)
-      {
-        println("Dice:"+i+","+k+","+j+" total score:"+(i+k+j));
-        total=i+k+j;
-        table[total]++;
-      }
-    }
-  }
-  
-  for (i=0;i<10;i++)
-  {
-    print("No of times (N)"+i+" appeared (M)"+table[i]+" ");
-    for(j=0;j<table[i];j++)
-    {
-      print("#");
-    }
-    println();
-  }
-  
+  //printDiceTable(); 
   
   //// until someone wins
   //while (p1Score<1000 && p2Score<1000)
@@ -112,7 +98,170 @@ void setup() {
   //println("Rolls:"+diceRolls);
   //println("P1 score:"+diceRolls*p1Score);
   //println("P2 score:"+diceRolls*p2Score);
+  
+  currentBoard.updateWorldCountByScore(p1StartingScore,p1StartingScore,1);
+  currentBoard.printBoard();
+  
+  int iterations=0;
+  boolean winner=false;
+  while (winner==false)
+  {
+    nextBoard.resetBoard();
+    winner=currentBoard.takeTurn(nextBoard);
+    
+    println("**** AFTER ITERATIONS="+iterations);
+    nextBoard.printBoard();
+    swapBoards();
+    iterations++;
+  }
+}
 
+public void swapBoards()
+{
+  GameBoard temp;
+  temp=currentBoard;
+  currentBoard=nextBoard;
+  nextBoard=temp;
+}
+
+public class GameBoard
+{
+  // 1-10 == score squares 1-10 - note '0' is not used, we skip this index.
+  // 0-21 == number of "worlds" that currently have that score. bottom part of this table will
+  // always remain empty as the worlds start with scores, but we leave the array fullsized
+  // to make indexing clean - note we also make it 22, so we can ignore 0-indexing and actually
+  // assign worlds with score x into cell x.
+  long[][] gb=new long[11][23];
+  
+  void printBoard()
+  {
+    int i=0,j=0;
+    for (i=0;i<11;i++)
+    {
+      print("Index:"+i+" worlds:");
+      for (j=0;j<22;j++)
+      {
+        print(gb[i][j]+",");
+      }
+      println();
+    }
+  }
+
+  public void updateWorldCountByScore(int scoreSpace,int score, long worlds)
+  {
+    gb[scoreSpace][score]=worlds;
+  }
+  
+  public boolean takeTurn(GameBoard updateBoard)
+  {
+    int scoreSquare=0,score=0;
+    boolean winner=false;
+    
+    // for each square along the board...
+    for (scoreSquare=0;scoreSquare<10;scoreSquare++)
+    {
+      // for each set of worlds with a given score
+      // at this location on the board
+      for (score=0;score<23;score++)
+      {
+        // do any worlds exist in this state?
+        if (gb[scoreSquare][score]!=0)
+        {
+          // Yes - we need to fork this set of worlds
+          // using the distribution matrix to create
+          // new worlds
+          winner=forkWorlds(updateBoard,scoreSquare,score);
+          if (winner==true)
+          {
+            return(true);
+          }
+        }
+      }
+    }
+    return(false);
+  }
+  
+  public boolean forkWorlds(GameBoard updateBoard,int scoreSquare, int score)
+  {
+    int d=0;
+    long worlds=gb[scoreSquare][score]; // count of the number of worlds at this point on the board with a given score
+    int newLocation=0;
+    int newScore=0;
+    
+    // fork the input worlds for each of the possible
+    // dice outcomes...
+    for (d=0;d<distribution.length;d++)
+    {
+      // some permutations are impossible - we can skip these, we could do this
+      // in the loop above and save a bit of processing, but the code is a bit
+      // cleaner this way (and would work if we changed the type of dice)
+      if (distribution[d]!=0)
+      {
+        
+        // work out the new board location where the player now resides in this world
+        newLocation=scoreSquare+distribution[d]; 
+//println("Newlocation calculated to:"+newLocation+" from dist:"+distribution[d]);
+        // wrap around if needed
+        newLocation=newLocation>10?newLocation-10:newLocation;
+        
+        // work out the new score for this world/player combo
+        newScore=score+newLocation;
+        
+        // update the board with the new world/score/square value - and combine it
+        // with any existing values, as previous world expansions this round may
+        // already resulted in worlds existing in this state
+        
+        if (newScore>21)
+        {
+          return(true);
+        }
+        updateBoard.gb[newLocation][newScore]+=worlds;
+      }
+    }
+    return(false);
+  }
+  
+  public void resetBoard()
+  {
+    int i=0,j=0;
+    for (i=0;i<11;i++)
+    {
+      for (j=0;j<23;j++)
+      {
+        gb[i][j]=0;
+      }
+    }
+  }
+}
+
+void printDiceTable()
+{
+  int total=0;
+  int table[] = new int[10];
+  int i=0,j=0,k=0;
+
+  for (i=1;i<4;i++)
+  {
+    for (k=1;k<4;k++)
+    {
+      for (j=1;j<4;j++)
+      {
+        println("Dice:"+i+","+k+","+j+" total score:"+(i+k+j));
+        total=i+k+j;
+        table[total]++;
+      }
+    }
+  }
+  
+  for (i=0;i<10;i++)
+  {
+    print("No of times (N)"+i+" appeared (M)"+table[i]+" ");
+    for(j=0;j<table[i];j++)
+    {
+      print("#");
+    }
+    println();
+  }
 }
 
 void printMasterList()
