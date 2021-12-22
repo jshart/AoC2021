@@ -146,12 +146,12 @@ public class GameBoard
       {
         if (gb[i][j]==0)
         {
-          print("_,");
+          print("_|");
         }
         else
         {
           //print(gb[i][j]+",");
-          print("#,");
+          print("#|");
 
           totalWorlds+=gb[i][j];
           bucketsFound++;
