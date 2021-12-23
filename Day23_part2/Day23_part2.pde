@@ -20,8 +20,8 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 ArrayList<String> masterList = new ArrayList<String>();
 
 Room[] rooms=new Room[4];
-Corridor[] corridor=new Corridor[11];
-int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
+Corridor corridor = new Corridor();
+
 ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
 
 void setup() {
@@ -48,8 +48,8 @@ void setup() {
   
   // test cases
   // 1) move crab from room to corridor
-  corridor[2].update(rooms[0].getCrab());
-  corridor[1].update(rooms[0].getCrab());
+  corridor.segments[2].update(rooms[0].getCrab());
+  corridor.segments[1].update(rooms[0].getCrab());
 
   println();
   printRooms();
@@ -75,6 +75,14 @@ void setup() {
 
   println("[A] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('A')));
   println("[B] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('B')));
+  
+  println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
+  println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
+  println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
+  println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
+  println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
+  println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
+
 
 }
 
@@ -101,15 +109,18 @@ public void initRoomsExample()
   {
         rooms[i]=new Room();
   }
-  for (i=0;i<11;i++)
-  {
-        corridor[i]=new Corridor(corridorMask[i]);
-  }
-  
+
+  //   int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
+
   rooms[0].targetName='A';
+  rooms[0].corridorAccess=2;
   rooms[1].targetName='B';
+  rooms[1].corridorAccess=4;
   rooms[2].targetName='C';
+  rooms[2].corridorAccess=6;
   rooms[3].targetName='D';
+  rooms[3].corridorAccess=8;
+
   
   rooms[0].crabs.add(new Crab('A'));
   rooms[0].crabs.add(new Crab('D'));
@@ -147,7 +158,7 @@ public void printRooms()
   print("#");
   for (i=0;i<11;i++)
   {
-    print(corridor[i].corridorContains());
+    print(corridor.segments[i].corridorContains());
   }
   println("#");
   
@@ -200,9 +211,9 @@ public void printMoveCandidates()
   
   for (i=0;i<11;i++)
   {
-    if (corridor[i].occupant!=null)
+    if (corridor.segments[i].occupant!=null)
     {
-      print(corridor[i].occupant.type+",");
+      print(corridor.segments[i].occupant.type+",");
     }
   }
   println();
@@ -237,13 +248,56 @@ public void calculatePermittedMoves()
   // corridor location?
 }
 
-
 public class Corridor
+{
+  CorridorSegment[] segments=new CorridorSegment[11];
+  int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
+  
+  public Corridor()
+  {
+    int i=0;
+    for (i=0;i<11;i++)
+    {
+      segments[i]=new CorridorSegment(corridorMask[i]);
+    }
+  }
+  
+  public boolean canReachFrom(int s, int e)
+  {
+    int i=0;
+    // left to right?
+    if (e>s)
+    {
+      for (i=s+1;i<=e;i++)
+      {
+        if (segments[i].occupant!=null)
+        {
+          // something in the way...
+          return(false);
+        }
+      }
+    }
+    else
+    {
+      for (i=s-1;i>=e;i--)
+      {
+        if (segments[i].occupant!=null)
+        {
+          // something in the way...
+          return(false);
+        }
+      }
+    }
+    return(true);
+  }
+}
+
+public class CorridorSegment
 {
   Crab occupant=null;
   int permitted=0;
   
-  public Corridor(int p)
+  public CorridorSegment(int p)
   {
     permitted=p;
   }
@@ -285,6 +339,7 @@ public class Crab
 public class Room
 {
   char targetName=' ';
+  int corridorAccess=0;
   ArrayList<Crab> crabs = new ArrayList<Crab>();
   
   public Room()
