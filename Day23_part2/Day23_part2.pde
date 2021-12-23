@@ -186,7 +186,12 @@ public void printMoveCandidates()
   // First check all the rooms
   for (i=0;i<4;i++)
   {
-    if (rooms[i].crabs.size()>0)
+    // we're only interest in looking in rooms which have crabs
+    // and that room isn't already open (an open room indicates
+    // its either empty or the crabs that are in it are the right
+    // type - and if they're the right type we dont want to move
+    // them again).
+    if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
     {
       print(rooms[i].crabs.get(rooms[i].crabs.size()-1).type+",");
     }
@@ -203,6 +208,34 @@ public void printMoveCandidates()
   println();
 }
 
+// TODO - stub - need to fill this in
+public void calculatePermittedMoves()
+{
+  // anything in a corridor can only move to 
+  // its final room - so we can check if the room is 
+  // open. In order to get there, we need code that
+  // can tell if there are any crabs in the way (basically
+  // are any of the permitted locations between us and the 
+  // destination blocked.
+  
+  // Any crabs that meet the above criteria are most likely
+  // the highest priority ones to move, as they then finalise
+  // their position and are out of scope.
+  
+  // next loop through each of the crabs at the head of a room
+  // to see if its a candidate.
+  // 1) if the room is open, do not move the crab, that means
+  //    its already in the room it should be in
+  // 2) if the crab can move directly to its desired room from
+  //    this location, then that is a good move to follow through
+  //
+  // Finally what are the possible corridor locations we can 
+  // reach (i.e. are not blocked by another crab?
+  //
+  // this last part is the bit Im unsure about - is there a smart
+  // way to calculate which/if a crab should move into a particular
+  // corridor location?
+}
 
 
 public class Corridor
