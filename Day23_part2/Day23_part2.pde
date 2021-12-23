@@ -21,6 +21,8 @@ ArrayList<String> masterList = new ArrayList<String>();
 
 Room[] rooms=new Room[4];
 Corridor[] corridor=new Corridor[11];
+int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
+ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
 
 void setup() {
   size(200, 200);
@@ -46,7 +48,9 @@ void setup() {
   
   // test cases
   // 1) move crab from room to corridor
-  corridor[2].occupant=rooms[0].getCrab();
+  corridor[2].update(rooms[0].getCrab());
+  corridor[1].update(rooms[0].getCrab());
+
   println();
   printRooms();
   
@@ -99,7 +103,7 @@ public void initRoomsExample()
   }
   for (i=0;i<11;i++)
   {
-        corridor[i]=new Corridor();
+        corridor[i]=new Corridor(corridorMask[i]);
   }
   
   rooms[0].targetName='A';
@@ -126,6 +130,13 @@ public void initRoomsExample()
   rooms[3].crabs.add(new Crab('C'));
   rooms[3].crabs.add(new Crab('A'));
   rooms[3].crabs.add(new Crab('D'));
+  
+  // copy all the crabs into the master list for easy access
+  // not sure yet if I need this, but lets make it anyway.
+  for (i=0;i<4;i++)
+  {
+    crabMasterList.addAll(rooms[i].crabs);
+  }
 }
 
 public void printRooms()
@@ -163,23 +174,63 @@ public void printRooms()
   {
     print((rooms[i].open()==true?"O":"-")+" ");
   }
+  print("     ");
+  printMoveCandidates();
+}
+
+public void printMoveCandidates()
+{
+  int i=0;
+  
+  print("Move candidates:");
+  // First check all the rooms
+  for (i=0;i<4;i++)
+  {
+    if (rooms[i].crabs.size()>0)
+    {
+      print(rooms[i].crabs.get(rooms[i].crabs.size()-1).type+",");
+    }
+  }
+  print("|");
+  
+  for (i=0;i<11;i++)
+  {
+    if (corridor[i].occupant!=null)
+    {
+      print(corridor[i].occupant.type+",");
+    }
+  }
   println();
 }
+
+
 
 public class Corridor
 {
   Crab occupant=null;
+  int permitted=0;
   
-  public Corridor()
+  public Corridor(int p)
   {
-    
+    permitted=p;
+  }
+  
+  public boolean update(Crab c)
+  {
+    if (permitted==1)
+    {
+      occupant=c;
+      return(true);
+    }
+    println("*** Illegal attempt to place crab ["+c.type+"] into corridor location not allowed");
+    return(false);
   }
   
   public Character corridorContains()
   {
     if (occupant==null)
     {
-      return('.');
+      return(permitted==1?'_':'.');
     }
     else
     {
