@@ -19,10 +19,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
-Room[] rooms=new Room[4];
-Corridor corridor = new Corridor();
 
-ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
 
 void setup() {
   size(200, 200);
@@ -42,47 +39,12 @@ void setup() {
   
   //}
   
-  initRoomsExample();
-  printRooms();
+  GameInstance g = new GameInstance();
   
+  g.initRoomsExample();
+  g.printRooms();
   
-  // test cases
-  // 1) move crab from room to corridor
-  corridor.segments[2].update(rooms[0].getCrab());
-  corridor.segments[1].update(rooms[0].getCrab());
-
-  println();
-  printRooms();
-  
-  // 2) add crab to room
-  rooms[0].addCrab(new Crab('Z'));
-  println();
-  printRooms();
-  
-  // 3) room open?
-  rooms[0].getCrab();
-  rooms[0].getCrab();
-  rooms[0].getCrab();
-  rooms[0].getCrab();
-  println();
-  printRooms();
-
-  rooms[0].addCrab(new Crab('A'));
-  rooms[0].addCrab(new Crab('A'));
-  rooms[0].addCrab(new Crab('A'));
-  println();
-  printRooms();
-
-  println("[A] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('A')));
-  println("[B] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('B')));
-  
-  println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
-  println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
-  println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
-  println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
-  println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
-  println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
-
+  g.runTestCases();
 
 }
 
@@ -100,152 +62,206 @@ void draw() {
 
 }
 
-
-public void initRoomsExample()
+public class GameInstance
 {
-  
-  int i=0;
-  for (i=0;i<4;i++)
+  Room[] rooms=new Room[4];
+  Corridor corridor = new Corridor();  
+  ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
+
+  public GameInstance()
   {
-        rooms[i]=new Room();
   }
-
-  //   int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
-
-  rooms[0].targetName='A';
-  rooms[0].corridorAccess=2;
-  rooms[1].targetName='B';
-  rooms[1].corridorAccess=4;
-  rooms[2].targetName='C';
-  rooms[2].corridorAccess=6;
-  rooms[3].targetName='D';
-  rooms[3].corridorAccess=8;
-
   
-  rooms[0].crabs.add(new Crab('A'));
-  rooms[0].crabs.add(new Crab('D'));
-  rooms[0].crabs.add(new Crab('D'));
-  rooms[0].crabs.add(new Crab('B'));  
- 
-  rooms[1].crabs.add(new Crab('D'));
-  rooms[1].crabs.add(new Crab('B'));   
-  rooms[1].crabs.add(new Crab('C'));
-  rooms[1].crabs.add(new Crab('C'));
-
-  rooms[2].crabs.add(new Crab('C'));
-  rooms[2].crabs.add(new Crab('A'));
-  rooms[2].crabs.add(new Crab('B'));
-  rooms[2].crabs.add(new Crab('B'));
-
-  rooms[3].crabs.add(new Crab('A'));
-  rooms[3].crabs.add(new Crab('C'));
-  rooms[3].crabs.add(new Crab('A'));
-  rooms[3].crabs.add(new Crab('D'));
-  
-  // copy all the crabs into the master list for easy access
-  // not sure yet if I need this, but lets make it anyway.
-  for (i=0;i<4;i++)
+  void runTestCases()
   {
-    crabMasterList.addAll(rooms[i].crabs);
+      
+    // test cases
+    // 1) move crab from room to corridor
+    corridor.segments[2].update(rooms[0].getCrab());
+    corridor.segments[1].update(rooms[0].getCrab());
+  
+    println();
+    printRooms();
+    
+    // 2) add crab to room
+    rooms[0].addCrab(new Crab('Z'));
+    println();
+    printRooms();
+    
+    // 3) room open?
+    rooms[0].getCrab();
+    rooms[0].getCrab();
+    rooms[0].getCrab();
+    rooms[0].getCrab();
+    println();
+    printRooms();
+  
+    rooms[0].addCrab(new Crab('A'));
+    rooms[0].addCrab(new Crab('A'));
+    rooms[0].addCrab(new Crab('A'));
+    println();
+    printRooms();
+  
+    println("[A] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('A')));
+    println("[B] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('B')));
+    
+    println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
+    println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
+    println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
+    println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
+    println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
+    println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
+  
   }
-}
-
-public void printRooms()
-{
-  int i=0,j=0;
   
-  println("#############");
-  print("#");
-  for (i=0;i<11;i++)
-  {
-    print(corridor.segments[i].corridorContains());
-  }
-  println("#");
   
-  for (i=3;i>=0;i--)
+  
+  public void initRoomsExample()
   {
-    print("##");
-    for (j=0;j<4;j++)
+    
+    int i=0;
+    for (i=0;i<4;i++)
     {
-      if (i>rooms[j].crabs.size()-1)
+          rooms[i]=new Room();
+    }
+  
+    //   int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
+  
+    rooms[0].targetName='A';
+    rooms[0].corridorAccess=2;
+    rooms[1].targetName='B';
+    rooms[1].corridorAccess=4;
+    rooms[2].targetName='C';
+    rooms[2].corridorAccess=6;
+    rooms[3].targetName='D';
+    rooms[3].corridorAccess=8;
+  
+    
+    rooms[0].crabs.add(new Crab('A'));
+    rooms[0].crabs.add(new Crab('D'));
+    rooms[0].crabs.add(new Crab('D'));
+    rooms[0].crabs.add(new Crab('B'));  
+   
+    rooms[1].crabs.add(new Crab('D'));
+    rooms[1].crabs.add(new Crab('B'));   
+    rooms[1].crabs.add(new Crab('C'));
+    rooms[1].crabs.add(new Crab('C'));
+  
+    rooms[2].crabs.add(new Crab('C'));
+    rooms[2].crabs.add(new Crab('A'));
+    rooms[2].crabs.add(new Crab('B'));
+    rooms[2].crabs.add(new Crab('B'));
+  
+    rooms[3].crabs.add(new Crab('A'));
+    rooms[3].crabs.add(new Crab('C'));
+    rooms[3].crabs.add(new Crab('A'));
+    rooms[3].crabs.add(new Crab('D'));
+    
+    // copy all the crabs into the master list for easy access
+    // not sure yet if I need this, but lets make it anyway.
+    for (i=0;i<4;i++)
+    {
+      crabMasterList.addAll(rooms[i].crabs);
+    }
+  }
+  
+  public void printRooms()
+  {
+    int i=0,j=0;
+    
+    println("#############");
+    print("#");
+    for (i=0;i<11;i++)
+    {
+      print(corridor.segments[i].corridorContains());
+    }
+    println("#");
+    
+    for (i=3;i>=0;i--)
+    {
+      print("##");
+      for (j=0;j<4;j++)
       {
-        print("# ");
+        if (i>rooms[j].crabs.size()-1)
+        {
+          print("# ");
+        }
+        else
+        {
+          print("#"+rooms[j].crabs.get(i).type);
+        }
       }
-      else
+      println("###");
+    }
+    println("#############");
+    
+    print("   ");
+    for (i=0;i<4;i++)
+    {
+      print((rooms[i].open()==true?"O":"-")+" ");
+    }
+    print("     ");
+    printMoveCandidates();
+  }
+  
+  public void printMoveCandidates()
+  {
+    int i=0;
+    
+    print("Move candidates:");
+    // First check all the rooms
+    for (i=0;i<4;i++)
+    {
+      // we're only interest in looking in rooms which have crabs
+      // and that room isn't already open (an open room indicates
+      // its either empty or the crabs that are in it are the right
+      // type - and if they're the right type we dont want to move
+      // them again).
+      if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
       {
-        print("#"+rooms[j].crabs.get(i).type);
+        print(rooms[i].crabs.get(rooms[i].crabs.size()-1).type+",");
       }
     }
-    println("###");
-  }
-  println("#############");
-  
-  print("   ");
-  for (i=0;i<4;i++)
-  {
-    print((rooms[i].open()==true?"O":"-")+" ");
-  }
-  print("     ");
-  printMoveCandidates();
-}
-
-public void printMoveCandidates()
-{
-  int i=0;
-  
-  print("Move candidates:");
-  // First check all the rooms
-  for (i=0;i<4;i++)
-  {
-    // we're only interest in looking in rooms which have crabs
-    // and that room isn't already open (an open room indicates
-    // its either empty or the crabs that are in it are the right
-    // type - and if they're the right type we dont want to move
-    // them again).
-    if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
+    print("|");
+    
+    for (i=0;i<11;i++)
     {
-      print(rooms[i].crabs.get(rooms[i].crabs.size()-1).type+",");
+      if (corridor.segments[i].occupant!=null)
+      {
+        print(corridor.segments[i].occupant.type+",");
+      }
     }
+    println();
   }
-  print("|");
   
-  for (i=0;i<11;i++)
+  // TODO - stub - need to fill this in
+  public void calculatePermittedMoves()
   {
-    if (corridor.segments[i].occupant!=null)
-    {
-      print(corridor.segments[i].occupant.type+",");
-    }
+    // anything in a corridor can only move to 
+    // its final room - so we can check if the room is 
+    // open. In order to get there, we need code that
+    // can tell if there are any crabs in the way (basically
+    // are any of the permitted locations between us and the 
+    // destination blocked.
+    
+    // Any crabs that meet the above criteria are most likely
+    // the highest priority ones to move, as they then finalise
+    // their position and are out of scope.
+    
+    // next loop through each of the crabs at the head of a room
+    // to see if its a candidate.
+    // 1) if the room is open, do not move the crab, that means
+    //    its already in the room it should be in
+    // 2) if the crab can move directly to its desired room from
+    //    this location, then that is a good move to follow through
+    //
+    // Finally what are the possible corridor locations we can 
+    // reach (i.e. are not blocked by another crab?
+    //
+    // this last part is the bit Im unsure about - is there a smart
+    // way to calculate which/if a crab should move into a particular
+    // corridor location?
   }
-  println();
-}
-
-// TODO - stub - need to fill this in
-public void calculatePermittedMoves()
-{
-  // anything in a corridor can only move to 
-  // its final room - so we can check if the room is 
-  // open. In order to get there, we need code that
-  // can tell if there are any crabs in the way (basically
-  // are any of the permitted locations between us and the 
-  // destination blocked.
-  
-  // Any crabs that meet the above criteria are most likely
-  // the highest priority ones to move, as they then finalise
-  // their position and are out of scope.
-  
-  // next loop through each of the crabs at the head of a room
-  // to see if its a candidate.
-  // 1) if the room is open, do not move the crab, that means
-  //    its already in the room it should be in
-  // 2) if the crab can move directly to its desired room from
-  //    this location, then that is a good move to follow through
-  //
-  // Finally what are the possible corridor locations we can 
-  // reach (i.e. are not blocked by another crab?
-  //
-  // this last part is the bit Im unsure about - is there a smart
-  // way to calculate which/if a crab should move into a particular
-  // corridor location?
 }
 
 public class Corridor
@@ -262,6 +278,12 @@ public class Corridor
     }
   }
   
+  
+  // NOTE this function just checks to see if a corridor segment
+  // is reachable without going through another crab. it does not
+  // care if the destination segment is a permitted stopping point
+  // or not. It is assuming that the calling code will only call
+  // this for valid segment destinations.
   public boolean canReachFrom(int s, int e)
   {
     int i=0;
@@ -329,6 +351,7 @@ public class CorridorSegment
 public class Crab
 {
   char type=' ';
+  int fuelUsed=0; // TODO - we need to add the maths into the move code to update this.
   
   public Crab(char t)
   {
