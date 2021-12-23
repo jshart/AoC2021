@@ -1,0 +1,24 @@
+Goal;
+1) waste as few steps as possible on highest cost - e.g. avoid unnecessary moves where possible in reverse order; D, B, C, A (A is least costly and therefore we can "afford" most wastage here)
+
+Optimisation rules;
+1) if a crab can get to their room in this step, then always do it.
+
+speculation rules?
+1) if you have to store 'd' tempoarily - use the right hand buffer as a first preference?
+2) if you have to store 'a' temporaily - use the left hand buffer as a first preference?
+
+
+In the example, Eric stops D at this location, for no reason that I can see? D could move directly to their
+destination cave without needing to pause? what in the algorithm is making D pause here?
+
+#############
+#AA.D.....AD#
+###.#B#C#.###
+  #.#B#C#.#
+  #.#B#C#D#
+  #A#B#C#D#
+  #########
+
+Because this is en-route to the destination, it doesnt actually make the solution any less fuel effecient,
+but I also cant see why a set of rules would choose to do this when the 'D' column is open.
