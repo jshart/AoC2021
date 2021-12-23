@@ -20,6 +20,7 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 ArrayList<String> masterList = new ArrayList<String>();
 
 Room[] rooms=new Room[4];
+Corridor[] corridor=new Corridor[11];
 
 void setup() {
   size(200, 200);
@@ -41,6 +42,36 @@ void setup() {
   
   initRoomsExample();
   printRooms();
+  
+  
+  // test cases
+  // 1) move crab from room to corridor
+  corridor[2].occupant=rooms[0].getCrab();
+  println();
+  printRooms();
+  
+  // 2) add crab to room
+  rooms[0].addCrab(new Crab('Z'));
+  println();
+  printRooms();
+  
+  // 3) room open?
+  rooms[0].getCrab();
+  rooms[0].getCrab();
+  rooms[0].getCrab();
+  rooms[0].getCrab();
+  println();
+  printRooms();
+
+  rooms[0].addCrab(new Crab('A'));
+  rooms[0].addCrab(new Crab('A'));
+  rooms[0].addCrab(new Crab('A'));
+  println();
+  printRooms();
+
+  println("[A] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('A')));
+  println("[B] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('B')));
+
 }
 
 void printMasterList()
@@ -57,6 +88,7 @@ void draw() {
 
 }
 
+
 public void initRoomsExample()
 {
   
@@ -65,37 +97,94 @@ public void initRoomsExample()
   {
         rooms[i]=new Room();
   }
-  rooms[0].occupants[0].type='B';
-  rooms[0].occupants[1].type='D';
-  rooms[0].occupants[2].type='D';
-  rooms[0].occupants[3].type='A';
+  for (i=0;i<11;i++)
+  {
+        corridor[i]=new Corridor();
+  }
+  
+  rooms[0].targetName='A';
+  rooms[1].targetName='B';
+  rooms[2].targetName='C';
+  rooms[3].targetName='D';
+  
+  rooms[0].crabs.add(new Crab('A'));
+  rooms[0].crabs.add(new Crab('D'));
+  rooms[0].crabs.add(new Crab('D'));
+  rooms[0].crabs.add(new Crab('B'));  
+ 
+  rooms[1].crabs.add(new Crab('D'));
+  rooms[1].crabs.add(new Crab('B'));   
+  rooms[1].crabs.add(new Crab('C'));
+  rooms[1].crabs.add(new Crab('C'));
 
-  rooms[1].occupants[0].type='C';
-  rooms[1].occupants[1].type='C';
-  rooms[1].occupants[2].type='B';
-  rooms[1].occupants[3].type='D';
+  rooms[2].crabs.add(new Crab('C'));
+  rooms[2].crabs.add(new Crab('A'));
+  rooms[2].crabs.add(new Crab('B'));
+  rooms[2].crabs.add(new Crab('B'));
 
-  rooms[2].occupants[0].type='B';
-  rooms[2].occupants[1].type='B';
-  rooms[2].occupants[2].type='A';
-  rooms[2].occupants[3].type='C';
-
-  rooms[3].occupants[0].type='D';
-  rooms[3].occupants[1].type='A';
-  rooms[3].occupants[2].type='C';
-  rooms[3].occupants[3].type='A';
+  rooms[3].crabs.add(new Crab('A'));
+  rooms[3].crabs.add(new Crab('C'));
+  rooms[3].crabs.add(new Crab('A'));
+  rooms[3].crabs.add(new Crab('D'));
 }
 
 public void printRooms()
 {
   int i=0,j=0;
-  for (i=0;i<4;i++)
+  
+  println("#############");
+  print("#");
+  for (i=0;i<11;i++)
   {
+    print(corridor[i].corridorContains());
+  }
+  println("#");
+  
+  for (i=3;i>=0;i--)
+  {
+    print("##");
     for (j=0;j<4;j++)
     {
-      print("#"+rooms[j].occupants[i].type);
+      if (i>rooms[j].crabs.size()-1)
+      {
+        print("# ");
+      }
+      else
+      {
+        print("#"+rooms[j].crabs.get(i).type);
+      }
     }
-    println("#");
+    println("###");
+  }
+  println("#############");
+  
+  print("   ");
+  for (i=0;i<4;i++)
+  {
+    print((rooms[i].open()==true?"O":"-")+" ");
+  }
+  println();
+}
+
+public class Corridor
+{
+  Crab occupant=null;
+  
+  public Corridor()
+  {
+    
+  }
+  
+  public Character corridorContains()
+  {
+    if (occupant==null)
+    {
+      return('.');
+    }
+    else
+    {
+      return(occupant.type);
+    }
   }
 }
 
@@ -103,23 +192,78 @@ public class Crab
 {
   char type=' ';
   
-  public Crab()
+  public Crab(char t)
   {
+    type=t;
   }
 }
 
 public class Room
 {
   char targetName=' ';
-  Crab[] occupants = new Crab[4];
+  ArrayList<Crab> crabs = new ArrayList<Crab>();
   
   public Room()
   {
-    int i=0;
-    for (i=0;i<4;i++)
+
+  }
+  
+  public Crab getCrab()
+  {
+    if (crabs.size()==0)
     {
-      occupants[i]=new Crab();
+      println("*** Illegal attempt to take a crab from a room that is empty, room was="+targetName);
+      return(null);
     }
+    Crab r=crabs.get(crabs.size()-1);
+    crabs.remove(crabs.size()-1);
+    return(r);
+  }
+  
+  public boolean addCrab(Crab c)
+  {
+    if (c.type!=targetName)
+    {
+      println("*** Illegal attempt to add crab ["+c.type+"] to room type="+targetName);
+      return(false);
+    }
+    crabs.add(c);
+    return(true);
+  }
+  
+  public boolean canEnter(Crab c)
+  {
+    if (open()==true)
+    {
+      if (c.type==targetName)
+      {
+        return(true);
+      }
+    }
+    return(false);
+  }
+  
+  // signifies if the room is open for crabs to
+  // enter - which is defined as an empty room
+  // or one that only has the right type of crab
+  public boolean open()
+  {
+    int i=0;
+    if (crabs.size()==0)
+    {
+      return(true);
+    }
+    else
+    {
+      for (i=0;i<crabs.size();i++)
+      {
+        if (crabs.get(i).type!=targetName)
+        {
+          return(false);
+        }
+      }
+    }
+    return (true);
   }
 }
 
