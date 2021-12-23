@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day22_part2\\data\\mydata");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\DayXX\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -19,26 +19,8 @@ InputFile input = new InputFile("input.txt");
 // Master list of all data input, ready for subsequent processing
 ArrayList<String> masterList = new ArrayList<String>();
 
-ArrayList<Voxel> voxelList = new ArrayList<Voxel>();
-
-Minimum minx=new Minimum();
-Minimum miny=new Minimum();
-Minimum minz=new Minimum();
-Maximum maxx=new Maximum();
-Maximum maxy=new Maximum();
-Maximum maxz=new Maximum();
-
-//int[][][] reactor = new int[200][200][200];
-
-int ztranslate=-5000;
-int xtranslate=600;
-int ytranslate=600;
-int degree=0;
-int voxels=0;
-
-
 void setup() {
-  size(1200, 1200, P3D);
+  size(200, 200);
   background(0);
   stroke(255);
   frameRate(10);
@@ -52,78 +34,9 @@ void setup() {
   // Loop through each input item...
   for (i=0;i<input.lines.size();i++)
   {
-    voxelList.add(new Voxel(input.lines.get(i)));
+  
   }
   
-  for (i=0;i<voxelList.size();i++)
-  {
-    print("VoxIndex:"+i+" ");
-    println(voxelList.get(i).rangeToText());
-    updateMinMaxRange(voxelList.get(i));
-  }
-  println("Total x range:"+minx.value+","+maxx.value+" diff="+(maxx.value-minx.value));
-  println("Total y range:"+miny.value+","+maxy.value+" diff="+(maxy.value-miny.value));
-  println("Total z range:"+minz.value+","+maxz.value+" diff="+(maxz.value-minz.value));
-  
-  //part1Solution();
-  
-  for (i=0;i<voxelList.size();i++)
-  {
-    voxelList.get(i).isCube();
-    //println(v1.rangeToText());
-  }
-  
-  voxels=voxelList.size();
-}
-
-void keyPressed()
-{
-  switch (key)
-  {
-    case 'q':
-      //drawIndex=(drawIndex==scannerList.size()-1?0:drawIndex+1);
-      //println("Draw Index updated to:"+drawIndex);
-      break;
-    case 'z':
-      //drawIndex=(drawIndex==0?scannerList.size()-1:drawIndex-1);
-      //println("Draw Index updated to:"+drawIndex);
-      break;
-    case 'w':
-      ztranslate-=100;
-      println("ztranslate updated to:"+ztranslate);
-      break;
-    case 's':
-      ztranslate+=100;
-      println("ztranslate updated to:"+ztranslate);
-      break;
-    case 'a':
-      xtranslate-=100;
-      println("ztranslate updated to:"+xtranslate);
-      break;
-    case 'd':
-      xtranslate+=100;
-      println("ztranslate updated to:"+xtranslate);
-      break;
-    case '+':
-      voxels++;
-      println("voxel count updated to:"+voxels);
-      break;
-    case '-':
-      voxels--;
-      println("voxel count updated to:"+voxels);
-      break;
-  }
-}
-
-public void updateMinMaxRange(Voxel r)
-{
-  minx.set(r.startx);
-  miny.set(r.starty);
-  minz.set(r.startz);
-  
-  maxx.set(r.endx);
-  maxy.set(r.endy);
-  maxz.set(r.endz);
 }
 
 void printMasterList()
@@ -136,177 +49,10 @@ void printMasterList()
 }
 
 
-void draw()
-{  
-  background(0);
-  //noStroke();
-  translate(xtranslate,ytranslate,ztranslate);
-  rotateX(radians(degree));
-  rotateY(radians(degree));
-  rotateZ(radians(degree));
-  int i=0;
-  int l=voxelList.size();
-  
-  for (i=0;i<voxels && i<l;i++)
-  {
-    voxelList.get(i).drawVoxel();
-  }
-  
-  degree=(degree>360?0:degree+1);
+void draw() {  
+
 }
 
-public class Voxel
-{
-  int startx=0;
-  int starty=0;
-  int endx=0;
-  int endy=0;
-  int startz=0;
-  int endz=0;
-  boolean on=false;
-  color c=color(random(255),random(255),random(255));
-  
-  public Voxel(int x1, int x2, int y1, int y2, int z1, int z2)
-  {
-    startx=x1;
-    endx=x2;
-    starty=y1;
-    endy=y2;
-    startz=z1;
-    endz=z2;
-  }
-  
-  public Voxel(String s)
-  {
-    String temp[];
-    String temp2[];
-    temp=s.split(" ");
-    int i=0;
-    char c;
-    
-//println("Processing: "+s);
-    
-    if (temp[0].equals("on")==true)
-    {
-      on=true;
-    }
-    temp=temp[1].split(",");
-    
-    for (i=0;i<temp.length;i++)
-    {
-      c=temp[i].charAt(0);
-      
-      temp[i]=temp[i].substring(2,temp[i].length());
-//println("- temp[i] after chomp:"+temp[i]);
-      temp2=temp[i].split(":");
-      
-//println("- Processing:"+temp2[0]+" for:"+c);
-//println("- Processing:"+temp2[1]+" for:"+c);
-      
-      switch (c)
-      {
-        case 'x':
-          startx=Integer.parseInt(temp2[0]);
-          endx=Integer.parseInt(temp2[1]);
-          break;
-        case 'y':
-          starty=Integer.parseInt(temp2[0]);
-          endy=Integer.parseInt(temp2[1]);
-          break;
-        case 'z':
-          startz=Integer.parseInt(temp2[0]);
-          endz=Integer.parseInt(temp2[1]);
-          break;
-      }
-    }
-    
-    // for part 1 - lets offset everything by 50, to ensure the entire
-    // matrix is positive
-    //startx+=50;
-    //starty+=50;
-    //startz+=50;
-    //endx+=50;
-    //endy+=50;
-    //endz+=50;
-  }
-  
-  
-  public void drawVoxel()
-  {
-    int w=endx-startx;
-    int h=endy-starty;
-    int d=endz-startz;
-    
-    pushMatrix();
-    stroke(c);
-    noFill();
-    box(w,h,d);
-    popMatrix();
-  }
-  
-  public boolean goodRange()
-  {
-    if (startx<0 || starty<0 || startz<0)
-    {
-      return(false);
-    }
-    if (endx>100 || endy>100 || endz>100)
-    {
-      return(false);
-    }
-    return(true);
-  }
-  
-  public String rangeToText()
-  {
-    String s=new String("Xr:"+startx+","+endx+" Yr:"+starty+","+endy+" Zr:"+startz+","+endz);
-    return(s);
-  }
-  public String rangeToText(int x1,int x2,int y1,int y2,int z1,int z2)
-  {
-    String s=new String("Xr:"+x1+","+x2+" Yr:"+y1+","+y2+" Zr:"+z1+","+z2);
-    return(s);
-  }
-  
-  public Voxel normaliseToPositive()
-  {
-    int x1=startx,x2=endx,y1=starty,y2=endy,z1=startz,z2=endz;
-    
-    // normalise this voxel co-ords to all positive
-    int xd=(startx<0?abs(startx):0);
-    int yd=(starty<0?abs(starty):0);
-    int zd=(startz<0?abs(startz):0);
-
-    return(translate(xd,yd,zd));
-  }
-  
-  public Voxel translate(int xd, int yd, int zd)
-  {
-    int x1=startx,x2=endx,y1=starty,y2=endy,z1=startz,z2=endz;
-    x1+=xd;x2+=xd;
-    y1+=yd;y2+=yd;
-    z1+=zd;z2+=zd;
-    
-    println("Translated voxel from:"+rangeToText()+" to "+rangeToText(x1,x2,y1,y2,z1,z2));
-    return(new Voxel(x1,x2,y1,y2,z1,z2));
-  }
-  
-  public boolean isCube()
-  {
-    int xd=abs(endx-startx);
-    int yd=abs(endy-starty);
-    int zd=abs(endz-startz);
-    
-    print("IS Cube check:"+xd+","+yd+","+zd);
-    if (xd==yd && yd==zd)
-    {
-      println(" CUBE");
-      return(true);
-    }
-    println(" NO CUBE");
-    return(false);
-  }
-}
 
 
 ///////////////////////////////////////////////
