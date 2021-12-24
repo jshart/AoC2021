@@ -102,8 +102,8 @@ public class GameInstance
     println();
     printRooms();
   
-    println("[A] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('A')));
-    println("[B] can enter room 0 with type:"+rooms[0].targetName+" "+rooms[0].canEnter(new Crab('B')));
+    println("[A] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('A')));
+    println("[B] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('B')));
     
     println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
     println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
@@ -111,6 +111,9 @@ public class GameInstance
     println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
     println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
     println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
+    
+    corridor.segments[3].update(new Crab('A'));
+    printRooms();
   
   }
   
@@ -127,13 +130,13 @@ public class GameInstance
   
     //   int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
   
-    rooms[0].targetName='A';
+    rooms[0].roomName='A';
     rooms[0].corridorAccess=2;
-    rooms[1].targetName='B';
+    rooms[1].roomName='B';
     rooms[1].corridorAccess=4;
-    rooms[2].targetName='C';
+    rooms[2].roomName='C';
     rooms[2].corridorAccess=6;
-    rooms[3].targetName='D';
+    rooms[3].roomName='D';
     rooms[3].corridorAccess=8;
   
     
@@ -163,6 +166,22 @@ public class GameInstance
     {
       crabMasterList.addAll(rooms[i].crabs);
     }
+  }
+  
+  public int roomNameToCorridorAccess(char t)
+  {
+    switch (t)
+    {
+      case 'A':
+        return(2);
+      case 'B':
+        return(4);
+      case 'C':
+        return(6);
+      case 'D':
+        return(8);
+    }
+    return(-1);
   }
   
   public void printRooms()
@@ -200,13 +219,14 @@ public class GameInstance
     {
       print((rooms[i].open()==true?"O":"-")+" ");
     }
-    print("     ");
+    println();
     printMoveCandidates();
   }
   
   public void printMoveCandidates()
   {
     int i=0;
+    Crab c;
     
     print("Move candidates:");
     // First check all the rooms
@@ -219,19 +239,49 @@ public class GameInstance
       // them again).
       if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
       {
-        print(rooms[i].crabs.get(rooms[i].crabs.size()-1).type+",");
+        c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+        print(c.type+",");
+        
+        legalToMoveHome(rooms[i].corridorAccess,c);
       }
+      println();
     }
-    print("|");
     
     for (i=0;i<11;i++)
     {
       if (corridor.segments[i].occupant!=null)
       {
+        print("|");
+        c=corridor.segments[i].occupant;
         print(corridor.segments[i].occupant.type+",");
+        
+        legalToMoveHome(i,c);
+
+        println();
       }
     }
-    println();
+  }
+  
+  public boolean legalToMoveHome(int location, Crab c)
+  {
+    if (corridor.canReachFrom(location,roomNameToCorridorAccess(c.type))==true)
+    {
+      print(" Can reach home");
+      if (c.myTargetRoom(rooms).open()==true)
+      {
+        print(" and its open");
+        return(true);
+      }
+      else
+      {
+        print(" but its closed");
+      }
+    }
+    else
+    {
+      print(" can not reach home");
+    }
+    return(false);
   }
   
   // TODO - stub - need to fill this in
@@ -262,6 +312,7 @@ public class GameInstance
     // way to calculate which/if a crab should move into a particular
     // corridor location?
   }
+  
 }
 
 public class Corridor
@@ -357,11 +408,28 @@ public class Crab
   {
     type=t;
   }
+  
+  public Room myTargetRoom(Room[] r)
+  {
+    Room myTarget=null;
+    int i=0;
+    int l=r.length;
+    for (i=0;i<l;i++)
+    {
+      myTarget=r[i];
+      
+      if (myTarget.roomName==type)
+      {
+        return(myTarget);
+      }
+    }
+    return(myTarget);
+  }
 }
 
 public class Room
 {
-  char targetName=' ';
+  char roomName=' ';
   int corridorAccess=0;
   ArrayList<Crab> crabs = new ArrayList<Crab>();
   
@@ -374,7 +442,7 @@ public class Room
   {
     if (crabs.size()==0)
     {
-      println("*** Illegal attempt to take a crab from a room that is empty, room was="+targetName);
+      println("*** Illegal attempt to take a crab from a room that is empty, room was="+roomName);
       return(null);
     }
     Crab r=crabs.get(crabs.size()-1);
@@ -384,9 +452,9 @@ public class Room
   
   public boolean addCrab(Crab c)
   {
-    if (c.type!=targetName)
+    if (c.type!=roomName)
     {
-      println("*** Illegal attempt to add crab ["+c.type+"] to room type="+targetName);
+      println("*** Illegal attempt to add crab ["+c.type+"] to room type="+roomName);
       return(false);
     }
     crabs.add(c);
@@ -397,7 +465,7 @@ public class Room
   {
     if (open()==true)
     {
-      if (c.type==targetName)
+      if (c.type==roomName)
       {
         return(true);
       }
@@ -419,7 +487,7 @@ public class Room
     {
       for (i=0;i<crabs.size();i++)
       {
-        if (crabs.get(i).type!=targetName)
+        if (crabs.get(i).type!=roomName)
         {
           return(false);
         }
