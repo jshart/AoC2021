@@ -228,6 +228,8 @@ public class GameInstance
     int i=0;
     Crab c;
     
+    ArrayList<Crab> movableCrabs = new ArrayList<Crab>();
+    
     print("Move candidates:");
     // First check all the rooms
     for (i=0;i<4;i++)
@@ -262,6 +264,9 @@ public class GameInstance
     }
   }
   
+  // Location here is the position in the corridor the crab would be if it exited
+  // its current room, and therefore the complete "move" needs to also account
+  // for where the crab is in the original room before it moves (if it is in a room).
   public boolean legalToMoveHome(int location, Crab c)
   {
     if (corridor.canReachFrom(location,roomNameToCorridorAccess(c.type))==true)
@@ -363,6 +368,22 @@ public class Corridor
     }
     return(true);
   }
+  
+  // simple search to see if this crab is in the corridor or not, should
+  // not be needed as we now have back-links from the crab to the location
+  // its stored in - to make things easier to map back and forth.
+  public boolean isInCorridor(Crab c)
+  {
+    int i=0;
+    for (i=0;i<11;i++)
+    {
+      if (c==segments[i].occupant)
+      {
+        return(true);
+      }
+    }
+    return(false);
+  }
 }
 
 public class CorridorSegment
@@ -380,6 +401,8 @@ public class CorridorSegment
     if (permitted==1)
     {
       occupant=c;
+      c.corridorLocation=this;
+      c.roomLocation=null;
       return(true);
     }
     println("*** Illegal attempt to place crab ["+c.type+"] into corridor location not allowed");
@@ -403,6 +426,8 @@ public class Crab
 {
   char type=' ';
   int fuelUsed=0; // TODO - we need to add the maths into the move code to update this.
+  CorridorSegment corridorLocation=null;
+  Room roomLocation=null;
   
   public Crab(char t)
   {
@@ -457,6 +482,8 @@ public class Room
       println("*** Illegal attempt to add crab ["+c.type+"] to room type="+roomName);
       return(false);
     }
+    c.roomLocation=this;
+    c.corridorLocation=null;
     crabs.add(c);
     return(true);
   }
