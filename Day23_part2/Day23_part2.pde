@@ -316,8 +316,27 @@ public class GameInstance
     // this last part is the bit Im unsure about - is there a smart
     // way to calculate which/if a crab should move into a particular
     // corridor location?
-  }
-  
+    //
+    // We should at least sort the permitted moves list by least cost
+    // to most cost. We're looking for the lowest cost fuel level,
+    // so we know the solution is mostly going to be made up of low
+    // cost fuel moves, so we should favour those.
+    //
+    // that probably means we should generate an arraylist of some sort
+    // of "movement" objects that we can then sort and pick one to execute.
+    //
+    // Notes on movement, movement is made up of discrete segments;
+    // 1) a crab exiting a room (cost to get from stack position to open location
+    //    directly in front of the room)
+    // 2) Corridor cost - cost to move left/right n spaces in the corridor
+    // 3) cost to enter a room (cost to get from open location directly in front
+    //    of room down to a stack location in the room).
+    //
+    // A move may consist of one of the following combinations;
+    // (1) + (2)
+    // (1) + (2) + (3)
+    //       (2) + (3)
+  } 
 }
 
 public class Corridor
@@ -422,6 +441,34 @@ public class CorridorSegment
   }
 }
 
+// TODO - fill out stubs
+public class Movement
+{
+  int exitCost=0;
+  int leftCost=0;
+  int rightCost=0;
+  int enterCost=0;
+  
+  public Movement()
+  {
+  }
+  
+  public int calcExitCost()
+  {
+    return(0);
+  }
+  
+  public int calcEntryCost()
+  {
+    return(0);
+  }
+  
+  public int calcCorridorCost()
+  {
+    return(0);
+  }
+}
+
 public class Crab
 {
   char type=' ';
@@ -470,6 +517,11 @@ public class Room
       println("*** Illegal attempt to take a crab from a room that is empty, room was="+roomName);
       return(null);
     }
+    
+    // TODO: hook this into a move calculation somehow...
+    println("cost to EXIT room is:"+(5-crabs.size()));
+
+
     Crab r=crabs.get(crabs.size()-1);
     crabs.remove(crabs.size()-1);
     return(r);
@@ -484,6 +536,10 @@ public class Room
     }
     c.roomLocation=this;
     c.corridorLocation=null;
+    
+    // TODO: hook this into a move calculation somehow...
+    println("cost to ENTER room is:"+(4-crabs.size()));
+    
     crabs.add(c);
     return(true);
   }
