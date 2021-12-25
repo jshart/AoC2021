@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day25_part1\\data\\example");
+String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC2021\\Day25_part1\\data\\mydata");
 
 //ArrayList<String> fieldLines = new ArrayList<String>();
 //int numFieldLines=0;
@@ -30,7 +30,7 @@ void setup() {
   input.printFile();
   
   int i=0,j=0;
-  Sea gSea = new Sea(input.lines.size(),input.lines.get(0).length());
+  Sea gSea = new Sea(input.lines.get(0).length(),input.lines.size());
 
   // Loop through each input item...
   for (i=0;i<input.lines.size();i++)
@@ -38,8 +38,34 @@ void setup() {
     gSea.loadLine(i,input.lines.get(i));
   }
   gSea.printMatrix();
-  gSea.checkCanMove(1);
-  gSea.printMoveMatrix();
+  println();
+ 
+  int iterations=0;
+  int count=0;
+  //for (i=0;i<iterations;i++)
+  do
+  {
+    println();
+    count=0;
+    
+    // Move east flock
+    gSea.resetMoveMask();
+    gSea.checkCanMove(1);
+    count=gSea.move();
+    //gSea.printMatrix();
+    println();
+    
+    // move south flock
+    gSea.resetMoveMask(); 
+    gSea.checkCanMove(2);
+    count+=gSea.move();
+    //gSea.printMatrix();
+    
+    
+    iterations++;
+    println("Iteration:"+iterations+" completed with a count of:"+count);
+  } while (count!=0);
+  println("Iterations:"+iterations);
 }
 
 void printMasterList()
@@ -71,25 +97,25 @@ public class Sea
     maxY=y;
   }
   
-  public void loadLine(int x, String s)
+  public void loadLine(int y, String s)
   {
-    int i=0;
-    println("PL:"+x+",S:"+s.length()+"["+s+"]");
-    for (i=0;i<s.length();i++)
+    int x=0;
+    println("PL:"+y+",S:"+s.length()+"["+s+"]");
+    for (x=0;x<s.length();x++)
     {
-      switch(s.charAt(i))
+      switch(s.charAt(x))
       {
         case '.':
-          matrix[x][i]=0;
+          matrix[x][y]=0;
           break;
         case '>':
-          matrix[x][i]=1;
+          matrix[x][y]=1;
           break;
         case 'v':
-          matrix[x][i]=2;
+          matrix[x][y]=2;
           break;
         default:
-          matrix[x][i]=-1;
+          matrix[x][y]=-1;
           break;
       }
     }
@@ -98,10 +124,9 @@ public class Sea
   public void printMatrix()
   {
     int x=0,y=0;
-    
-    for (x=0;x<maxX;x++)
+    for (y=0;y<maxY;y++)
     {
-      for (y=0;y<maxY;y++)
+      for (x=0;x<maxX;x++)
       {
         print(f(matrix[x][y]));
       }
@@ -113,9 +138,9 @@ public class Sea
   {
     int x=0,y=0;
     
-    for (x=0;x<maxX;x++)
+    for (y=0;y<maxY;y++)
     {
-      for (y=0;y<maxY;y++)
+      for (x=0;x<maxX;x++)
       {
         print((canMove[x][y]==true?1:0));
       }
@@ -178,7 +203,9 @@ public class Sea
   {
     boolean result=false;
     int contents=0;
-    
+
+//print("called to check:"+x+","+y);
+
     switch (matrix[x][y])
     {
       case 1: // need to check to the right & possibly wrap
@@ -192,7 +219,41 @@ public class Sea
     // check if the chosen cell is empty or not
     result=(contents==0?true:false);
     
+//println(" returning:"+result);
     return(result);
+  }
+  
+  public int move()
+  {
+    int x=0,y=0;
+    int count=0;
+    int newX=0, newY=0;
+
+    for (x=0;x<maxX;x++)
+    {
+      for (y=0;y<maxY;y++)
+      {
+        if (canMove[x][y]==true)
+        {
+          // move
+          switch (matrix[x][y])
+          {
+            case 1: // need to check to the right & possibly wrap
+              newX=(x+1>=maxX?0:x+1);
+              newY=y;
+              break;
+            case 2:
+              newX=x;
+              newY=(y+1>=maxY?0:y+1);
+              break;
+          }
+          matrix[newX][newY]=matrix[x][y];
+          matrix[x][y]=0;
+          count++;
+        }
+      }
+    }
+    return(count);
   }
 }
 
