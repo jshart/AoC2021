@@ -38,6 +38,8 @@ void setup() {
     gSea.loadLine(i,input.lines.get(i));
   }
   gSea.printMatrix();
+  gSea.checkCanMove(1);
+  gSea.printMoveMatrix();
 }
 
 void printMasterList()
@@ -107,6 +109,20 @@ public class Sea
     }
   }
   
+  public void printMoveMatrix()
+  {
+    int x=0,y=0;
+    
+    for (x=0;x<maxX;x++)
+    {
+      for (y=0;y<maxY;y++)
+      {
+        print((canMove[x][y]==true?1:0));
+      }
+      println();
+    }
+  }
+  
   // format helper function - just maps the int back into ascii
   public String f(int i)
   {
@@ -158,18 +174,23 @@ public class Sea
     }
   }
   
-  // TODO need to complete this logic
   public boolean freeSpace(int x, int y)
   {
     boolean result=false;
+    int contents=0;
     
     switch (matrix[x][y])
     {
       case 1: // need to check to the right & possibly wrap
+        contents=(x+1>=maxX?matrix[0][y]:matrix[x+1][y]);
         break;
       case 2:
+        contents=(y+1>=maxY?matrix[x][0]:matrix[x][y+1]);
         break; // need to check down and possibly wrap
     }
+    
+    // check if the chosen cell is empty or not
+    result=(contents==0?true:false);
     
     return(result);
   }
