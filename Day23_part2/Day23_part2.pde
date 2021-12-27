@@ -74,11 +74,11 @@ public class GameInstance
   
   void runTestCases2()
   {
-    rooms[1].getCrab();
-    rooms[1].getCrab();
-    rooms[1].getCrab();
-    rooms[1].getCrab();
-    printRooms();
+    //rooms[1].getCrab();
+    //rooms[1].getCrab();
+    //rooms[1].getCrab();
+    //rooms[1].getCrab();
+    //printRooms();
 
     do
     {
