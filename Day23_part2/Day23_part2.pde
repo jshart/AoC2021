@@ -82,7 +82,7 @@ public class GameInstance
 
     calculateMoves();
     
-    // TODO - need to add some crabs to the corridor to test blocking - for example
+    // need to add some crabs to the corridor to test blocking - for example
     // add a 'B' at position '5' would block all crabs to the right from moving left
     corridor.segments[5].update(new Crab('B',rooms));
     printRooms();
@@ -401,7 +401,7 @@ public class GameInstance
       }
     }
     
-    // TODO: there is one sorting edge case where the below code breaks
+    // there is one sorting edge case where the below code breaks
     // down. Each returned list of moves is pre-sorted into cost order,
     // but if we have *2 or more* crabs of the same type that may move
     // this turn, each of those will return a seperate list, and we 
@@ -415,6 +415,11 @@ public class GameInstance
     // We should simply (somehow) track the output of the 4 searchs, and
     // then check each list for the lowest value (a max of 4 comparisons
     // is not too costly and saves us sorting elements)
+    // 
+    // the above is a more effecient approach, but it was actually fiddly
+    // to make that work, so I've gone with a simplier approach of concat
+    // all the lists and just doing a simple linear search for the move
+    // with the lowest cost.
     
     println("Move from room to corridor candidates:");
     for (i=0;i<4;i++)
@@ -947,10 +952,6 @@ public class Room
       return(null);
     }
     
-    // TODO: hook this into a move calculation somehow...
-    print("cost to EXIT room is:"+(5-crabs.size()));
-
-
     Crab r=crabs.get(crabs.size()-1);
     crabs.remove(crabs.size()-1);
     println(" new stack size is:"+crabs.size());
@@ -972,9 +973,6 @@ public class Room
   {
     c.roomLocation=this;
     c.corridorLocation=null;
-    
-    // TODO: hook this into a move calculation somehow...
-    println("cost to ENTER room is:"+(4-crabs.size()));
     
     crabs.add(c);
     return(true);
