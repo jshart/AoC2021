@@ -84,6 +84,12 @@ public class GameInstance
     
     // TODO - need to add some crabs to the corridor to test blocking - for example
     // add a 'B' at position '5' would block all crabs to the right from moving left
+    corridor.segments[5].update(new Crab('B',rooms));
+    printRooms();
+
+    calculateMoves();
+        
+
   }
   
   void runTestCases()
@@ -314,6 +320,10 @@ public class GameInstance
   }
   
   
+  // TODO - we should repeat steps 1 & 2 in this until no more
+  // can be found, this ensures that all crabs that can ever
+  // get home in a round do. Then we do a "room->corridor" move
+  // to start the next round.
   public void calculateMoves()
   {
     ArrayList<Crab> movableCrabs = new ArrayList<Crab>();
