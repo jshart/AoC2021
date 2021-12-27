@@ -326,10 +326,10 @@ public class GameInstance
   // to start the next round.
   public void calculateMoves()
   {
-    ArrayList<Crab> movableCrabs = new ArrayList<Crab>();
     int i=0,j=0;
     Crab c;
-    ArrayList<Movement> testMoves;
+    ArrayList<Movement> corridorMoves = new ArrayList<Movement>();
+    Movement homeMove;
     
     println("Move home candidates in corridor:");
     
@@ -346,12 +346,12 @@ public class GameInstance
       {
         c=corridor.segments[i].occupant;
         
-        testMoves=canCrabMoveHome(c);
+        homeMove=canCrabMoveHome(c);
         
-        if (testMoves!=null)
+        if (homeMove!=null)
         {
           print("Crab:"+c.type+" in room:"+i);
-          print(" Can reach home by; "+testMoves.get(0).movementSummary());
+          print(" Can reach home by; "+homeMove.movementSummary());
           println();
         }
         else
@@ -385,13 +385,13 @@ public class GameInstance
         c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
         print("Found:"+c.type);
         
-        testMoves=canCrabMoveHome(c);
+        homeMove=canCrabMoveHome(c);
         
-        if (testMoves!=null)
+        if (homeMove!=null)
         {
 //print("TM:"+testMoves.size());
           print(" Crab:"+c.type+" in room:"+i);
-          print(" Can reach home by; "+testMoves.get(0).movementSummary());
+          print(" Can reach home by; "+homeMove.movementSummary());
         }
         else
         {
@@ -429,14 +429,29 @@ public class GameInstance
         // find the crab nearest the opening
         c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
         println("Found:"+c.type);
-        testMoves=permittedCorridorMovesForthisCrab(c);
-        
-        for (j=0;j<testMoves.size();j++)
-        {
-          println("\\-"+testMoves.get(j).movementSummary());
-        }
+        corridorMoves.addAll(permittedCorridorMovesForthisCrab(c));
       }
     }
+    
+    for (j=0;j<corridorMoves.size();j++)
+    {
+      println("\\-"+corridorMoves.get(j).movementSummary());
+    }
+    
+    println("Lowest cost corridor move is; "+findLeastCost(corridorMoves).movementSummary());
+  }
+  
+  public Movement findLeastCost(ArrayList<Movement> input)
+  {
+    int i=0;
+    int l=input.size();
+    Minimum min=new Minimum();
+    
+    for (i=0;i<l;i++)
+    {
+      min.set(input.get(i).weightedCost,i);
+    }
+    return(input.get(min.index));
   }
   
   // anything in a corridor can only move to 
@@ -483,9 +498,9 @@ public class GameInstance
   // (1) + (2)
   // (1) + (2) + (3)
   //       (2) + (3)
-  public ArrayList<Movement> canCrabMoveHome(Crab c)
+  public Movement canCrabMoveHome(Crab c)
   {
-    ArrayList<Movement> permittedMoves = new ArrayList<Movement>();
+    Movement permittedMove;
     int s=0;
     
     // First of all, can this crab move directly home? If so this
@@ -515,11 +530,11 @@ public class GameInstance
       if (corridor.canReachFrom(s,c.myTargetRoom.corridorAccess)==true)
       {
         // we've validated this is a permitted move, so we can add this as a permitted move
-        permittedMoves.add(new Movement(c));
+        permittedMove = new Movement(c);
         
         // as this crab can move directly to home there is no value in calculating corridor
         // moves.
-        return(permittedMoves);
+        return(permittedMove);
       }
     }
     return(null);
@@ -718,6 +733,7 @@ public class Movement
   int rightCost=0;
   int enterCost=0;
   Crab crabRef=null;
+  int weightedCost=0;
   
   public Movement()
   {
@@ -758,6 +774,7 @@ public class Movement
     calcCorridorCost(s,e);
     calcEntryCost(targetRoom);
     crabRef=c;
+    calcWeightedScore();
   }
   
   // Move from a room to a corridor segment
@@ -770,6 +787,7 @@ public class Movement
     calcExitCost(currentRoom);
     calcCorridorCost(s,e);
     crabRef=c;
+    calcWeightedScore();
   }
   
   // Move from a corridor segment to a room
@@ -787,11 +805,13 @@ public class Movement
   {
     String s=new String();
     //s+=this;
+    s+=" TY:"+crabRef.type;
     s+=" EX:"+exitCost;
     s+=" LC:"+leftCost;
     s+=" RC:"+rightCost;
     s+=" EN:"+enterCost;
-    s+=" RawC:"+rawScore();
+    s+=" RawC:"+rawCost();
+    s+=" WC:"+weightedCost;
     
     return(s);
   }
@@ -838,25 +858,28 @@ public class Movement
     return(true);
   }
   
-  public int rawScore()
+  public int rawCost()
   {
     return(enterCost+leftCost+rightCost+exitCost);
   }
   
-  public int weightedScore(Crab c)
+  public int calcWeightedScore()
   {
-    switch (c.type)
+    switch (crabRef.type)
     {
       case 'A':
-        return(rawScore());
+        weightedCost=rawCost();
+        break;
       case 'B':
-        return(rawScore()*10);
+        weightedCost=rawCost()*10;
+        break;
       case 'C':
-        return(rawScore()*100);
+        weightedCost=rawCost()*100;
+        break;
       case 'D':
-        return(rawScore()*1000);
+        weightedCost=rawCost()*1000;
     }
-    return(-1);
+    return(weightedCost);
   }
 }
 
@@ -1124,12 +1147,13 @@ public class Minimum
 {
   long value=0;
   boolean set=false;
+  int index=0;
   
   public Minimum()
   {
   }
 
-  public void set(long v)
+  public void set(long v, int i)
   {
     // Always set if this is the first time, but subsequently only set
     // if its less as we're trying to track the shortest distant. This
@@ -1137,6 +1161,7 @@ public class Minimum
     if (set==false)
     {
       value=v;
+      index=i;
       set=true;
     }
     else
@@ -1144,6 +1169,7 @@ public class Minimum
       if (v<value)
       {
         value=v;
+        index=i;
       }
     }
   }
