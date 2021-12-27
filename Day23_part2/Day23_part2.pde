@@ -401,6 +401,20 @@ public class GameInstance
       }
     }
     
+    // TODO: there is one sorting edge case where the below code breaks
+    // down. Each returned list of moves is pre-sorted into cost order,
+    // but if we have *2 or more* crabs of the same type that may move
+    // this turn, each of those will return a seperate list, and we 
+    // need to manage that sets (basically we either need to sort them, or
+    // take the lowest cost from each).
+    //
+    // Note: at any one round there are a maximum of 4 candidates that
+    // can move into the corridor. This is because there are only a
+    // maximum of 4 rooms that crabs can come from *into* the corridor.
+    //
+    // We should simply (somehow) track the output of the 4 searchs, and
+    // then check each list for the lowest value (a max of 4 comparisons
+    // is not too costly and saves us sorting elements)
     
     println("Move from room to corridor candidates:");
     for (i=0;i<4;i++)
@@ -409,7 +423,7 @@ public class GameInstance
       // and that room isn't already open (an open room indicates
       // its either empty or the crabs that are in it are the right
       // type - and if they're the right type we dont want to move
-      // them agai
+      // them again
       if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
       {
         // find the crab nearest the opening
@@ -697,14 +711,13 @@ public class CorridorSegment
   }
 }
 
-// TODO - fill out stubs
 public class Movement
 {
   int exitCost=0;
   int leftCost=0;
   int rightCost=0;
   int enterCost=0;
-  char type=0;
+  Crab crabRef=null;
   
   public Movement()
   {
@@ -744,7 +757,7 @@ public class Movement
     // cost to enter.
     calcCorridorCost(s,e);
     calcEntryCost(targetRoom);
-    type=c.type;
+    crabRef=c;
   }
   
   // Move from a room to a corridor segment
@@ -756,8 +769,7 @@ public class Movement
     
     calcExitCost(currentRoom);
     calcCorridorCost(s,e);
-    
-    type=c.type;
+    crabRef=c;
   }
   
   // Move from a corridor segment to a room
