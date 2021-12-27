@@ -324,6 +324,12 @@ public class GameInstance
   // can be found, this ensures that all crabs that can ever
   // get home in a round do. Then we do a "room->corridor" move
   // to start the next round.
+  // TODO - check for the null case where no moves are computed/
+  // possible. If this occurs this branch is a dead end with no
+  // solution, eventually we need to code the ability to roll
+  // back.
+  // TODO - update/maintain a running count of the fuel spent on
+  // this game instance.
   public void calculateMoves()
   {
     int i=0,j=0;
@@ -805,6 +811,11 @@ public class Movement
     
   //  type=c.type;
   //}
+  
+  // TODO - write this :)
+  public void executeMove()
+  {
+  }
   
   public String movementSummary()
   {
