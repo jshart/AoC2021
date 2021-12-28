@@ -750,6 +750,14 @@ public class CorridorSegment
   int permitted=0;
   int location=0;
   
+  public CorridorSegment duplicate()
+  {
+    CorridorSegment c=new CorridorSegment(location, permitted);
+    // TODO need to work out what to do with the occupant - as we need to fork these to new instances?
+    c.occupant=occupant;
+    return(c);
+  }
+  
   public CorridorSegment(int i, int p)
   {
     location=i;
@@ -1016,10 +1024,24 @@ public class Crab
   Room roomLocation=null;
   Room myTargetRoom=null;
   
+  public Crab duplicate()
+  {
+    Crab c = new Crab(type, myTargetRoom);
+    c.corridorLocation=corridorLocation;
+    c.roomLocation=roomLocation;
+    return(c);
+  }
+  
   public Crab(char t, Room[] rooms)
   {
     type=t;
     myTargetRoom=lookupTargetRoom(rooms);
+  }
+  
+  public Crab(char t, Room _myTargetRoom)
+  {
+    type=t;
+    myTargetRoom=_myTargetRoom;
   }
   
   public Room lookupTargetRoom(Room[] r)
