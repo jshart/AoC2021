@@ -260,9 +260,7 @@ public class GameInstance
   {
     int i=0;
     Crab c;
-    
-    ArrayList<Crab> movableCrabs = new ArrayList<Crab>();
-    
+        
     print("Move candidates:");
     // First check all the rooms
     for (i=0;i<4;i++)
