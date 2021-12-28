@@ -564,17 +564,17 @@ public class GameInstance
     // other valid moves.
     
     // is the target room open?
-    if (c.myTargetRoom.open()==true)
+    if (c.getTargetLocation().open()==true)
     {
       // our start location is either in the cave or in the corridor, so we need to
       // set appropriately.
-      if (c.roomLocation!=null)
+      if (c.getRoomLocation()!=null)
       {
-        s=c.roomLocation.corridorAccess;
+        s=c.getRoomLocation().corridorAccess;
       }
-      else if (c.corridorLocation!=null)
+      else if (c.getCorridorLocation()!=null)
       {
-        s=c.corridorLocation.location;
+        s=c.getCorridorLocation().location;
       }
       else
       {
@@ -583,7 +583,7 @@ public class GameInstance
       //s=c.roomLocation!=null?c.roomLocation.corridorAccess:c.corridorLocation.location;
       
       // ok if the corridor between here and there is open, then this is a valid move
-      if (corridor.canReachFrom(s,c.myTargetRoom.corridorAccess)==true)
+      if (corridor.canReachFrom(s,c.getTargetLocation().corridorAccess)==true)
       {
         // we've validated this is a permitted move, so we can add this as a permitted move
         permittedMove = new Movement(c);
@@ -606,8 +606,8 @@ public class GameInstance
     boolean leftComplete=false;
     boolean rightComplete=false;
 
-    lefti=c.roomLocation.corridorAccess;
-    righti=c.roomLocation.corridorAccess;
+    lefti=c.getRoomLocation().corridorAccess;
+    righti=c.getRoomLocation().corridorAccess;
     
     
     // do a linear search simulataneously to the left & the right from this location
@@ -769,8 +769,8 @@ public class CorridorSegment
     if (permitted==1)
     {
       occupant=c;
-      c.corridorLocation=this;
-      c.roomLocation=null;
+      c.setCorridorLocation(this);
+      c.setTargetLocation(null);
       return(true);
     }
     println("*** Illegal attempt to place crab ["+c.type+"] into corridor location not allowed");
@@ -808,25 +808,25 @@ public class Movement
   // to its target location.
   public Movement(Crab c)
   {
-    Room targetRoom=c.myTargetRoom;
+    Room targetRoom=c.getTargetLocation();
     int e=targetRoom.corridorAccess;
     int s=0;
 
-    if (c.roomLocation!=null)
+    if (c.getRoomLocation()!=null)
     {
       // if we're in a room we need calculate the
       // cost to exit the room and what our start location
       // is for any corridor move.
-      Room currentRoom=c.roomLocation;
+      Room currentRoom=c.getRoomLocation();
       calcExitCost(currentRoom);
       
       s=currentRoom.corridorAccess;
     }
-    else if (c.corridorLocation!=null)
+    else if (c.getCorridorLocation()!=null)
     {
       // if we're already in the corridor, we just use that
       // location as our starting point.
-      s=c.corridorLocation.location;
+      s=c.getCorridorLocation().location;
     }
     else
     {
@@ -846,7 +846,7 @@ public class Movement
   // Move from a room to a corridor segment
   public Movement(Crab c, CorridorSegment seg)
   {
-    Room currentRoom=c.roomLocation;
+    Room currentRoom=c.getRoomLocation();
     int s=currentRoom.corridorAccess;
     int e=seg.location;
     
@@ -895,7 +895,7 @@ public class Movement
         // even though we already have a link to the crab, we still
         // explicitly call the getCrab() as this cleans up the state
         // of the room stack and cross links
-        temp=crabRef.roomLocation.getCrab();
+        temp=crabRef.getRoomLocation().getCrab();
       }
       else
       {
@@ -903,8 +903,8 @@ public class Movement
 
         // even though we already have a link to the crab, we still
         // explicitly remove it from the corridor to free up that segment
-        temp=crabRef.corridorLocation.occupant;
-        crabRef.corridorLocation.occupant=null;
+        temp=crabRef.getCorridorLocation().occupant;
+        crabRef.getCorridorLocation().occupant=null;
       }
       
       // irrespective of the source of the move, temp now points to the
@@ -912,7 +912,7 @@ public class Movement
       
       // move to target room (addCrab updates the internal object
       // x-refs so this is a one liner)
-      crabRef.myTargetRoom.addCrab(temp);
+      crabRef.getTargetLocation().addCrab(temp);
     }
     else // must be a move to the corridor
     {
@@ -926,11 +926,11 @@ public class Movement
       // even though we already have a link to the crab, we still
       // explicitly call the getCrab() as this cleans up the state
       // of the room stack and cross links
-      temp=crabRef.roomLocation.getCrab();
+      temp=crabRef.getRoomLocation().getCrab();
       
       // move to corridor index
       c.segments[corridorIndex].occupant=temp;
-      temp.corridorLocation=c.segments[corridorIndex];
+      temp.setCorridorLocation(c.segments[corridorIndex]);
     }
     return(weightedCost);
   }
@@ -1020,17 +1020,9 @@ public class Movement
 public class Crab
 {
   char type=' ';
-  CorridorSegment corridorLocation=null;
-  Room roomLocation=null;
-  Room myTargetRoom=null;
-  
-  public Crab duplicate()
-  {
-    Crab c = new Crab(type, myTargetRoom);
-    c.corridorLocation=corridorLocation;
-    c.roomLocation=roomLocation;
-    return(c);
-  }
+  private CorridorSegment corridorLocation=null;
+  private Room roomLocation=null;
+  private Room myTargetRoom=null;
   
   public Crab(char t, Room[] rooms)
   {
@@ -1071,7 +1063,37 @@ public class Crab
     // crabs below it in the stack, which means it
     // would still need to exit to let them out
     // before returning to this location.
-    return(roomLocation.open());
+    return(getRoomLocation().open());
+  }
+  
+  // GET/SET for roomLocation
+  public Room getRoomLocation()
+  {
+    return(roomLocation);
+  }
+  public void setRoomLocation(Room r)
+  {
+    roomLocation=r;
+  }
+  
+  // GET/SET for targetLocation
+  public void setTargetLocation(Room target)
+  {
+    myTargetRoom=target;
+  }
+  public Room getTargetLocation()
+  {
+    return(myTargetRoom);
+  }
+  
+  // GET/SET for corridorLocation
+  public void setCorridorLocation(CorridorSegment c)
+  {
+    corridorLocation=c;
+  }
+  public CorridorSegment getCorridorLocation()
+  {
+    return(corridorLocation);
   }
 }
 
@@ -1113,8 +1135,8 @@ public class Room
   
   public boolean forceAddCrab(Crab c)
   {
-    c.roomLocation=this;
-    c.corridorLocation=null;
+    c.setRoomLocation(this);
+    c.setCorridorLocation(null);
     
     crabs.add(c);
     return(true);
