@@ -67,6 +67,7 @@ public class GameInstance
   Room[] rooms=new Room[4];
   Corridor corridor = new Corridor();  
   ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
+  int runningScore=0;
 
   public GameInstance()
   {
@@ -252,6 +253,7 @@ public class GameInstance
       print((rooms[i].open()==true?"O":"-")+" ");
     }
     println();
+    println("Current score:"+runningScore);
   }
   
   public void printMoveCandidates()
@@ -323,15 +325,15 @@ public class GameInstance
   }
   
   
-  // TODO - we should repeat steps 1 & 2 in this until no more
+  // we should repeat steps 1 & 2 in this until no more
   // can be found, this ensures that all crabs that can ever
   // get home in a round do. Then we do a "room->corridor" move
   // to start the next round.
-  // TODO - check for the null case where no moves are computed/
+  // check for the null case where no moves are computed/
   // possible. If this occurs this branch is a dead end with no
   // solution, eventually we need to code the ability to roll
   // back.
-  // TODO - update/maintain a running count of the fuel spent on
+  // update/maintain a running count of the fuel spent on
   // this game instance.
   public boolean calculateMoves()
   {
@@ -369,7 +371,7 @@ public class GameInstance
             print(" Can reach home by; "+homeMove.movementSummary());
             println();
             
-            homeMove.executeMove(corridor);
+            runningScore+=homeMove.executeMove(corridor);
             moveHomeFound=true;
             anyMoveFound=true;
 
@@ -413,7 +415,7 @@ public class GameInstance
             print(" Crab:"+c.type+" in room:"+i);
             print(" Can reach home by; "+homeMove.movementSummary());
             
-            homeMove.executeMove(corridor);
+            runningScore+=homeMove.executeMove(corridor);
             moveHomeFound=true;
             anyMoveFound=true;
           }
@@ -487,7 +489,7 @@ public class GameInstance
       
       println("Lowest cost corridor move is; "+bestCorridorMove.movementSummary());
       
-      bestCorridorMove.executeMove(corridor);
+      runningScore+=bestCorridorMove.executeMove(corridor);
       
       printRooms();
     }
@@ -869,7 +871,7 @@ public class Movement
   // 1) crab is moving to their target room from another room
   // 2) crab is moving to their target room from the corridor
   // 3) crab is moving from their current room into the corridor.
-  public void executeMove(Corridor c)
+  public int executeMove(Corridor c)
   {
     Crab temp=null;
     
@@ -922,6 +924,7 @@ public class Movement
       c.segments[corridorIndex].occupant=temp;
       temp.corridorLocation=c.segments[corridorIndex];
     }
+    return(weightedCost);
   }
   
   public String movementSummary()
@@ -1009,7 +1012,6 @@ public class Movement
 public class Crab
 {
   char type=' ';
-  int fuelUsed=0; // TODO - we need to add the maths into the move code to update this.
   CorridorSegment corridorLocation=null;
   Room roomLocation=null;
   Room myTargetRoom=null;
