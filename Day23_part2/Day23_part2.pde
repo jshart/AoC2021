@@ -20,6 +20,11 @@ String filebase = new String("C:\\Users\\jsh27\\OneDrive\\Documents\\GitHub\\AoC
 ArrayList<String> masterList = new ArrayList<String>();
 
 
+// TODO - complete clean up of get/set stuff for classes and work out how to
+// replace direct access of x-ref's with dynamic looks ups where-ever possible
+// to make the save/retreive of state info much easier.
+
+
 
 void setup() {
   size(200, 200);
