@@ -71,6 +71,7 @@ public class GameInstance
 {
   Room[] rooms=new Room[4];
   Corridor corridor = new Corridor();  
+  ArrayList<Crab> crabMasterList = new ArrayList<Crab>();
   int runningScore=0;
 
   public GameInstance()
@@ -148,6 +149,60 @@ public class GameInstance
   }
   
   
+  //void runTestCases()
+  //{
+      
+  //  // test cases
+  //  // 1) move crab from room to corridor
+  //  //corridor.segments[2].update(rooms[0].getCrab());
+  //  //corridor.segments[1].update(rooms[0].getCrab());
+  
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+    
+  //  // 2) add crab to room
+  //  rooms[0].addCrab(new Crab('Z',rooms));
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+    
+  //  // 3) room open?
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+  
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+  
+  //  println("[A] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('A',rooms)));
+  //  println("[B] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('B',rooms)));
+    
+  //  println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
+  //  println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
+  //  println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
+  //  println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
+  //  println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
+  //  println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
+    
+  //  //corridor.segments[3].update(new Crab('A',rooms));
+  //  printRooms();
+  //    println();
+  //  printMoveCandidates();
+  //}
+  
   
   public int roomNameToCorridorAccess(char t)
   {
@@ -204,6 +259,73 @@ public class GameInstance
     println("Current score:"+runningScore);
   }
   
+  //public void printMoveCandidates()
+  //{
+  //  int i=0;
+  //  Crab c;
+        
+  //  print("Move candidates:");
+  //  // First check all the rooms
+  //  for (i=0;i<4;i++)
+  //  {
+  //    // we're only interest in looking in rooms which have crabs
+  //    // and that room isn't already open (an open room indicates
+  //    // its either empty or the crabs that are in it are the right
+  //    // type - and if they're the right type we dont want to move
+  //    // them again).
+  //    if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
+  //    {
+  //      // find the crab nearest the opening
+  //      c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+  //      print(c.type+",");
+        
+  //      // Can this crab move directly to its home?
+  //      legalToMoveHome(rooms[i].corridorAccess,c);
+  //    }
+  //    println();
+  //  }
+    
+  //  for (i=0;i<11;i++)
+  //  {
+  //    if (corridor.segments[i].occupied==true)
+  //    {
+  //      print("|");
+  //      c=corridor.segments[i].occupant;
+  //      print(corridor.segments[i].occupant.type+",");
+        
+  //      legalToMoveHome(i,c);
+
+  //      println();
+  //    }
+  //  }
+  //}
+  
+  //// Location here is the position in the corridor the crab would be if it exited
+  //// its current room, and therefore the complete "move" needs to also account
+  //// for where the crab is in the original room before it moves (if it is in a room).
+  //public boolean legalToMoveHome(int location, Crab c)
+  //{
+  //  if (corridor.canReachFrom(location,roomNameToCorridorAccess(c.type))==true)
+  //  {
+  //    print(" Can reach home");
+  //    if (c.getTargetLocation(rooms).open()==true)
+  //    {
+  //      print(" and its open");
+  //      return(true);
+  //    }
+  //    else
+  //    {
+  //      print(" but its closed");
+  //    }
+  //  }
+  //  else
+  //  {
+  //    print(" can not reach home");
+  //  }
+  //  return(false);
+  //}
+  
+  
   // we should repeat steps 1 & 2 in this until no more
   // can be found, this ensures that all crabs that can ever
   // get home in a round do. Then we do a "room->corridor" move
@@ -217,7 +339,7 @@ public class GameInstance
   public boolean calculateMoves()
   {
     int i=0,j=0;
-    Crab crab;
+    Crab c;
     
     // TODO - restructure this, so that corridorMoves is stored in
     // the crab object its associated with to simplify game state
@@ -226,10 +348,11 @@ public class GameInstance
     // this also fixes the issue that currently corridorMoves is
     // homeless and really needs to belong to part of the object
     // tree.
+    ArrayList<Movement> corridorMoves = new ArrayList<Movement>();
     Movement homeMove=null;
+    Movement bestCorridorMove=null;
     boolean moveHomeFound=false;
     boolean anyMoveFound=false;
-    
     
     do
     {
@@ -247,17 +370,17 @@ public class GameInstance
       {
         if (corridor.segments[i].occupied==true)
         {
-          crab=corridor.segments[i].occupant;
+          c=corridor.segments[i].occupant;
           
-          homeMove=canCrabMoveHome(crab, corridor, rooms);
+          homeMove=canCrabMoveHome(c, corridor, rooms);
           
           if (homeMove!=null)
           {
-            print("Crab:"+crab.type+" in room:"+i);
-            print(" Can reach home by; "+homeMove.movementSummary(crab));
+            print("Crab:"+c.type+" in room:"+i);
+            print(" Can reach home by; "+homeMove.movementSummary());
             println();
             
-            runningScore+=homeMove.executeMove(crab, corridor, rooms);
+            runningScore+=homeMove.executeMove(corridor, rooms);
             moveHomeFound=true;
             anyMoveFound=true;
 
@@ -290,18 +413,18 @@ public class GameInstance
         if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
         {
           // find the crab nearest the opening
-          crab=rooms[i].crabs.get(rooms[i].crabs.size()-1);
-          print("Found:"+crab.type);
+          c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+          print("Found:"+c.type);
           
-          homeMove=canCrabMoveHome(crab, corridor, rooms);
+          homeMove=canCrabMoveHome(c, corridor, rooms);
           
           if (homeMove!=null)
           {
   //print("TM:"+testMoves.size());
-            print(" Crab:"+crab.type+" in room:"+i);
-            print(" Can reach home by; "+homeMove.movementSummary(crab));
+            print(" Crab:"+c.type+" in room:"+i);
+            print(" Can reach home by; "+homeMove.movementSummary());
             
-            runningScore+=homeMove.executeMove(crab, corridor, rooms);
+            runningScore+=homeMove.executeMove(corridor, rooms);
             moveHomeFound=true;
             anyMoveFound=true;
           }
@@ -345,14 +468,7 @@ public class GameInstance
     // all the lists and just doing a simple linear search for the move
     // with the lowest cost.
     
-    // Check each room in turn looking for a room that has a candidate
-    // to move out into the corridor.
     println("Move from room to corridor candidates:");
-    anyMoveFound=false;
-    int numMovesFound=0;
-    Movement currentBestMove=null;
-    Movement tempMove=null;
-    Crab currentCrabWithBestMove=null;
     for (i=0;i<4;i++)
     {
       // we're only interest in looking in rooms which have crabs
@@ -363,59 +479,28 @@ public class GameInstance
       if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
       {
         // find the crab nearest the opening
-        crab=rooms[i].crabs.get(rooms[i].crabs.size()-1);
-        println("Found:"+crab.type);
-        
-        // retreive all of its permitted moves into the corridor
-        numMovesFound=crab.permittedCorridorMovesForthisCrab(rooms,corridor);
-        
-        if (numMovesFound>0)
-        {
-          anyMoveFound=true;
-
-          for (j=0;j<numMovesFound;j++)
-          {
-            println("\\-"+crab.permittedCorridorMoves.get(j).movementSummary(crab));
-          }
-
-          
-          // find the best move of all the moves permitted by this particular crab
-          // then compare it with a running "best move" to see if this is the new
-          // best move.
-          tempMove=findLeastCost(crab.permittedCorridorMoves);
-          if (tempMove!=null)
-          {
-            // if this is the first move - then just set it as a marker to start from
-            if (currentBestMove==null)
-            {
-              currentBestMove=tempMove;
-              currentCrabWithBestMove=crab;
-            }
-            else
-            {
-              // if this is a better move then set it.
-              if (tempMove.calcWeightedScore(crab) < currentBestMove.calcWeightedScore(currentCrabWithBestMove))
-              {
-                currentBestMove=tempMove;
-                currentCrabWithBestMove=crab;
-              }
-            }
-          }
-        }
+        c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+        println("Found:"+c.type);
+        corridorMoves.addAll(permittedCorridorMovesForthisCrab(c));
       }
     }
     
-    if (anyMoveFound==true)
+    if (corridorMoves.size()>0)
     {
-      println("Lowest cost corridor move is; "+currentBestMove.movementSummary(currentCrabWithBestMove));
+      anyMoveFound=true;
       
-      runningScore+=currentBestMove.executeMove(currentCrabWithBestMove, corridor, rooms);
+      for (j=0;j<corridorMoves.size();j++)
+      {
+        println("\\-"+corridorMoves.get(j).movementSummary());
+      }
+      
+      bestCorridorMove=findLeastCost(corridorMoves);
+      
+      println("Lowest cost corridor move is; "+bestCorridorMove.movementSummary());
+      
+      runningScore+=bestCorridorMove.executeMove(corridor, rooms);
       
       printRooms();
-    }
-    
-    if (anyMoveFound==true)
-    {
     }
     
     return(anyMoveFound);
@@ -510,7 +595,7 @@ public class GameInstance
       if (corridor.canReachFrom(s,c.getTargetLocation(rooms).corridorAccess)==true)
       {
         // we've validated this is a permitted move, so we can add this as a permitted move
-        permittedMove = new Movement(c, rooms);
+        permittedMove = new Movement(c, corridor, rooms);
         
         // as this crab can move directly to home there is no value in calculating corridor
         // moves.
@@ -519,6 +604,84 @@ public class GameInstance
     }
     return(null);
   }
+  
+  public ArrayList<Movement> permittedCorridorMovesForthisCrab(Crab c)
+  { 
+    ArrayList<Movement> permittedMoves = new ArrayList<Movement>();
+
+    // This crab can't move directly to the home cave, so lets consider which corridor
+    // segments it can reach.
+    int lefti=0, righti=0;
+    boolean leftComplete=false;
+    boolean rightComplete=false;
+
+    lefti=c.getRoomLocation(rooms).corridorAccess;
+    righti=c.getRoomLocation(rooms).corridorAccess;
+    
+    
+    // do a linear search simulataneously to the left & the right from this location
+    // looking for valid movement locations. By doing both searches at the same time
+    // we automatically sort them into least cost to most cost in the output list, as
+    // the "shortest" moves are found first and added to the list first, this means
+    // the list is pre-ordered correctly when we return and we dont need to further
+    // sort the list. If we then call this function for crabs from the least cost 
+    // to the highest cost (A-D) then we know we'll be able to prioritise all the
+    // moves from least costly to most costly across the whole crab population.
+    do
+    {
+      
+      // Check for permitted moves to the left. A permitted move is on that;
+      // 1) is not outside the bounds of the corridor
+      // 2) does not go through an occupied space
+      // 3) is to a permitted "rest" location (i.e. not in front of a cave)
+      if (leftComplete==false)
+      {
+        if (corridor.segments[lefti].occupied==true)
+        {
+          leftComplete=true;
+        }
+        else
+        {
+          if (corridor.segments[lefti].permitted>0)
+          {
+            permittedMoves.add(new Movement(c,corridor.segments[lefti],rooms));
+          }
+        }
+        lefti--;
+        if (lefti<0)
+        {
+          leftComplete=true;
+        }
+      }
+      
+      // Check for permitted moves to the right. A permitted move is on that;
+      // 1) is not outside the bounds of the corridor
+      // 2) does not go through an occupied space
+      // 3) is to a permitted "rest" location (i.e. not in front of a cave)
+      if (rightComplete==false)
+      {
+        if (corridor.segments[righti].occupied==true)
+        {
+          rightComplete=true;
+        }
+        else
+        {
+          if (corridor.segments[righti].permitted>0)
+          {
+            permittedMoves.add(new Movement(c,corridor.segments[righti],rooms));
+          }
+        }
+        righti++;
+        if (righti>=corridor.segments.length)
+        {
+          rightComplete=true;
+        }
+      }
+    }
+    while (leftComplete==false || rightComplete==false);
+    
+    return(permittedMoves);
+  } 
 }
 
 
@@ -656,6 +819,7 @@ public class Movement
   int leftCost=0;
   int rightCost=0;
   int enterCost=0;
+  Crab crabRef=null;
   int weightedCost=0;
   int corridorIndex=0;
   
@@ -665,7 +829,7 @@ public class Movement
   
   // move from crab from its current location (either in a room or in a corridor)
   // to its target location.
-  public Movement(Crab c, Room[] r)
+  public Movement(Crab c, Corridor corridor, Room[] r)
   {
     Room targetRoom=c.getTargetLocation(r);
     int e=targetRoom.corridorAccess;
@@ -698,7 +862,8 @@ public class Movement
     corridorIndex=s;
     calcCorridorCost(s,e);
     calcEntryCost(targetRoom);
-    calcWeightedScore(c);
+    crabRef=c;
+    calcWeightedScore();
   }
   
   // Move from a room to a corridor segment
@@ -711,7 +876,8 @@ public class Movement
     corridorIndex=e;
     calcExitCost(currentRoom);
     calcCorridorCost(s,e);
-    calcWeightedScore(c);
+    crabRef=c;
+    calcWeightedScore();
   }
   
   // Move from a corridor segment to a room
@@ -736,7 +902,7 @@ public class Movement
   // 1) crab is moving to their target room from another room
   // 2) crab is moving to their target room from the corridor
   // 3) crab is moving from their current room into the corridor.
-  public int executeMove(Crab crab, Corridor c, Room[] r)
+  public int executeMove(Corridor c, Room[] r)
   {
     Crab temp=null;
     
@@ -752,7 +918,7 @@ public class Movement
         // even though we already have a link to the crab, we still
         // explicitly call the getCrab() as this cleans up the state
         // of the room stack and cross links
-        temp=crab.getRoomLocation(r).getCrab();
+        temp=crabRef.getRoomLocation(r).getCrab();
       }
       else
       {
@@ -760,9 +926,9 @@ public class Movement
 
         // even though we already have a link to the crab, we still
         // explicitly remove it from the corridor to free up that segment
-        temp=crab.getCorridorLocation(c).occupant;
-        crab.getCorridorLocation(c).occupant=null;
-        crab.getCorridorLocation(c).occupied=false;
+        temp=crabRef.getCorridorLocation(c).occupant;
+        crabRef.getCorridorLocation(c).occupant=null;
+        crabRef.getCorridorLocation(c).occupied=false;
       }
       
       // irrespective of the source of the move, temp now points to the
@@ -770,7 +936,7 @@ public class Movement
       
       // move to target room (addCrab updates the internal object
       // x-refs so this is a one liner)
-      crab.getTargetLocation(r).addCrab(temp);
+      crabRef.getTargetLocation(r).addCrab(temp);
     }
     else // must be a move to the corridor
     {
@@ -784,7 +950,7 @@ public class Movement
       // even though we already have a link to the crab, we still
       // explicitly call the getCrab() as this cleans up the state
       // of the room stack and cross links
-      temp=crab.getRoomLocation(r).getCrab();
+      temp=crabRef.getRoomLocation(r).getCrab();
       
       // move to corridor index
       c.segments[corridorIndex].occupant=temp;
@@ -794,12 +960,12 @@ public class Movement
     }
     return(weightedCost);
   }
- 
-  public String movementSummary(Crab crab)
+  
+  public String movementSummary()
   {
     String s=new String();
     //s+=this;
-    s+=" TY:"+crab.type;
+    s+=" TY:"+crabRef.type;
     s+=" EX:"+exitCost;
     s+=" LC:"+leftCost;
     s+=" RC:"+rightCost;
@@ -857,9 +1023,9 @@ public class Movement
     return(enterCost+leftCost+rightCost+exitCost);
   }
   
-  public int calcWeightedScore(Crab crab)
+  public int calcWeightedScore()
   {
-    switch (crab.type)
+    switch (crabRef.type)
     {
       case 'A':
         weightedCost=rawCost();
@@ -884,8 +1050,6 @@ public class Crab
   private int corridorSegmentIndex=-1;
   //private Room roomLocationRef=null;
   //private Room myTargetRoomRef=null;
-  ArrayList<Movement> permittedCorridorMoves = new ArrayList<Movement>();
-
   
   public Crab(char t, Room[] rooms)
   {
@@ -978,87 +1142,6 @@ public class Crab
   {
     corridorSegmentIndex=i;
   }
-  
-  public int permittedCorridorMovesForthisCrab(Room[] rooms, Corridor corridor)
-  { 
-
-    // This crab can't move directly to the home cave, so lets consider which corridor
-    // segments it can reach.
-    int lefti=0, righti=0;
-    boolean leftComplete=false;
-    boolean rightComplete=false;
-    
-    // clear out any previous moves this crab may have been viable for from a previous move
-    // as the game state has now changed and these may no longer be valid, and so we recalculate.
-    permittedCorridorMoves.clear();
-
-    lefti=getRoomLocation(rooms).corridorAccess;
-    righti=getRoomLocation(rooms).corridorAccess;
-    
-    
-    // do a linear search simulataneously to the left & the right from this location
-    // looking for valid movement locations. By doing both searches at the same time
-    // we automatically sort them into least cost to most cost in the output list, as
-    // the "shortest" moves are found first and added to the list first, this means
-    // the list is pre-ordered correctly when we return and we dont need to further
-    // sort the list. If we then call this function for crabs from the least cost 
-    // to the highest cost (A-D) then we know we'll be able to prioritise all the
-    // moves from least costly to most costly across the whole crab population.
-    do
-    {
-      
-      // Check for permitted moves to the left. A permitted move is on that;
-      // 1) is not outside the bounds of the corridor
-      // 2) does not go through an occupied space
-      // 3) is to a permitted "rest" location (i.e. not in front of a cave)
-      if (leftComplete==false)
-      {
-        if (corridor.segments[lefti].occupied==true)
-        {
-          leftComplete=true;
-        }
-        else
-        {
-          if (corridor.segments[lefti].permitted>0)
-          {
-            permittedCorridorMoves.add(new Movement(this,corridor.segments[lefti],rooms));
-          }
-        }
-        lefti--;
-        if (lefti<0)
-        {
-          leftComplete=true;
-        }
-      }
-      
-      // Check for permitted moves to the right. A permitted move is on that;
-      // 1) is not outside the bounds of the corridor
-      // 2) does not go through an occupied space
-      // 3) is to a permitted "rest" location (i.e. not in front of a cave)
-      if (rightComplete==false)
-      {
-        if (corridor.segments[righti].occupied==true)
-        {
-          rightComplete=true;
-        }
-        else
-        {
-          if (corridor.segments[righti].permitted>0)
-          {
-            permittedCorridorMoves.add(new Movement(this,corridor.segments[righti],rooms));
-          }
-        }
-        righti++;
-        if (righti>=corridor.segments.length)
-        {
-          rightComplete=true;
-        }
-      }
-    }
-    while (leftComplete==false || rightComplete==false);
-    
-    return(permittedCorridorMoves.size());
-  } 
 }
 
 public class Room

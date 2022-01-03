@@ -1,0 +1,253 @@
+
+#############
+#__._._._.__#
+###B#C#B#D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:0
+Move home candidates in corridor:
+Move home candidates in rooms:
+Found:B cant reach home
+Found:C cant reach home
+Found:B cant reach home
+Found:D cant reach home
+#############
+#__._._._.__#
+###B#C#B#D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:0
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:B
+Found:C
+Found:B
+Found:D
+\- TY:B EX:1 LC:1 RC:0 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:0 RC:1 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:2 RC:0 EN:0 RawC:3 WC:30
+\- TY:B EX:1 LC:0 RC:3 EN:0 RawC:4 WC:40
+\- TY:B EX:1 LC:0 RC:5 EN:0 RawC:6 WC:60
+\- TY:B EX:1 LC:0 RC:7 EN:0 RawC:8 WC:80
+\- TY:B EX:1 LC:0 RC:8 EN:0 RawC:9 WC:90
+\- TY:C EX:1 LC:1 RC:0 EN:0 RawC:2 WC:200
+\- TY:C EX:1 LC:0 RC:1 EN:0 RawC:2 WC:200
+\- TY:C EX:1 LC:3 RC:0 EN:0 RawC:4 WC:400
+\- TY:C EX:1 LC:0 RC:3 EN:0 RawC:4 WC:400
+\- TY:C EX:1 LC:4 RC:0 EN:0 RawC:5 WC:500
+\- TY:C EX:1 LC:0 RC:5 EN:0 RawC:6 WC:600
+\- TY:C EX:1 LC:0 RC:6 EN:0 RawC:7 WC:700
+\- TY:B EX:1 LC:1 RC:0 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:0 RC:1 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:3 RC:0 EN:0 RawC:4 WC:40
+\- TY:B EX:1 LC:0 RC:3 EN:0 RawC:4 WC:40
+\- TY:B EX:1 LC:0 RC:4 EN:0 RawC:5 WC:50
+\- TY:B EX:1 LC:5 RC:0 EN:0 RawC:6 WC:60
+\- TY:B EX:1 LC:6 RC:0 EN:0 RawC:7 WC:70
+\- TY:D EX:1 LC:1 RC:0 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:2 EN:0 RawC:3 WC:3000
+\- TY:D EX:1 LC:3 RC:0 EN:0 RawC:4 WC:4000
+\- TY:D EX:1 LC:5 RC:0 EN:0 RawC:6 WC:6000
+\- TY:D EX:1 LC:7 RC:0 EN:0 RawC:8 WC:8000
+\- TY:D EX:1 LC:8 RC:0 EN:0 RawC:9 WC:9000
+Lowest cost corridor move is;  TY:B EX:1 LC:1 RC:0 EN:0 RawC:2 WC:20
+ new stack size is:3
+#############
+#_B._._._.__#
+### #C#B#D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:20
+Move home candidates in corridor:
+ cant reach homeMove home candidates in rooms:
+Found:D cant reach home
+Found:C cant reach home
+Found:B cant reach home
+Found:D cant reach home
+#############
+#_B._._._.__#
+### #C#B#D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:20
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:D
+Found:C
+Found:B
+Found:D
+\- TY:D EX:2 LC:0 RC:1 EN:0 RawC:3 WC:3000
+\- TY:D EX:2 LC:0 RC:3 EN:0 RawC:5 WC:5000
+\- TY:D EX:2 LC:0 RC:5 EN:0 RawC:7 WC:7000
+\- TY:D EX:2 LC:0 RC:7 EN:0 RawC:9 WC:9000
+\- TY:D EX:2 LC:0 RC:8 EN:0 RawC:10 WC:10000
+\- TY:C EX:1 LC:1 RC:0 EN:0 RawC:2 WC:200
+\- TY:C EX:1 LC:0 RC:1 EN:0 RawC:2 WC:200
+\- TY:C EX:1 LC:0 RC:3 EN:0 RawC:4 WC:400
+\- TY:C EX:1 LC:0 RC:5 EN:0 RawC:6 WC:600
+\- TY:C EX:1 LC:0 RC:6 EN:0 RawC:7 WC:700
+\- TY:B EX:1 LC:1 RC:0 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:0 RC:1 EN:0 RawC:2 WC:20
+\- TY:B EX:1 LC:3 RC:0 EN:0 RawC:4 WC:40
+\- TY:B EX:1 LC:0 RC:3 EN:0 RawC:4 WC:40
+\- TY:B EX:1 LC:0 RC:4 EN:0 RawC:5 WC:50
+\- TY:D EX:1 LC:1 RC:0 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:2 EN:0 RawC:3 WC:3000
+\- TY:D EX:1 LC:3 RC:0 EN:0 RawC:4 WC:4000
+\- TY:D EX:1 LC:5 RC:0 EN:0 RawC:6 WC:6000
+Lowest cost corridor move is;  TY:B EX:1 LC:1 RC:0 EN:0 RawC:2 WC:20
+ new stack size is:3
+#############
+#_B._.B._.__#
+### #C# #D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:40
+Move home candidates in corridor:
+ cant reach home cant reach homeMove home candidates in rooms:
+Found:D cant reach home
+Found:C cant reach home
+Found:B cant reach home
+Found:D cant reach home
+#############
+#_B._.B._.__#
+### #C# #D###
+###D#C#B#A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:40
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:D
+Found:C
+Found:B
+Found:D
+\- TY:D EX:2 LC:0 RC:1 EN:0 RawC:3 WC:3000
+\- TY:C EX:1 LC:1 RC:0 EN:0 RawC:2 WC:200
+\- TY:B EX:2 LC:0 RC:1 EN:0 RawC:3 WC:30
+\- TY:B EX:2 LC:0 RC:3 EN:0 RawC:5 WC:50
+\- TY:B EX:2 LC:0 RC:4 EN:0 RawC:6 WC:60
+\- TY:D EX:1 LC:1 RC:0 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:2 EN:0 RawC:3 WC:3000
+Lowest cost corridor move is;  TY:B EX:2 LC:0 RC:1 EN:0 RawC:3 WC:30
+ new stack size is:2
+#############
+#_B._.B.B.__#
+### #C# #D###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:70
+Move home candidates in corridor:
+ cant reach home cant reach home cant reach homeMove home candidates in rooms:
+Found:D cant reach home
+Found:C cant reach home
+Found:A cant reach home
+Found:D cant reach home
+#############
+#_B._.B.B.__#
+### #C# #D###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:70
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:D
+Found:C
+Found:A
+Found:D
+\- TY:D EX:2 LC:0 RC:1 EN:0 RawC:3 WC:3000
+\- TY:C EX:1 LC:1 RC:0 EN:0 RawC:2 WC:200
+\- TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:2 EN:0 RawC:3 WC:3000
+Lowest cost corridor move is;  TY:C EX:1 LC:1 RC:0 EN:0 RawC:2 WC:200
+ new stack size is:3
+#############
+#_B.C.B.B.__#
+### # # #D###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:270
+Move home candidates in corridor:
+ cant reach home cant reach home cant reach home cant reach homeMove home candidates in rooms:
+Found:D cant reach home
+Found:C cant reach home
+Found:A cant reach home
+Found:D cant reach home
+#############
+#_B.C.B.B.__#
+### # # #D###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:270
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:D
+Found:C
+Found:A
+Found:D
+\- TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+\- TY:D EX:1 LC:0 RC:2 EN:0 RawC:3 WC:3000
+Lowest cost corridor move is;  TY:D EX:1 LC:0 RC:1 EN:0 RawC:2 WC:2000
+ new stack size is:3
+#############
+#_B.C.B.B.D_#
+### # # # ###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:2270
+Move home candidates in corridor:
+ cant reach home cant reach home cant reach home cant reach home cant reach homeMove home candidates in rooms:
+Found:D cant reach home
+Found:C cant reach home
+Found:A cant reach home
+Found:A cant reach home
+#############
+#_B.C.B.B.D_#
+### # # # ###
+###D#C# #A###
+###D#B#A#C###
+###A#D#C#A###
+#############
+   - - - - 
+Current score:2270
+No more moves found, trying corridors
+Move from room to corridor candidates:
+Found:D
+Found:C
+Found:A
+Found:A
