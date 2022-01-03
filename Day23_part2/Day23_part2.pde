@@ -99,62 +99,6 @@ public class GameInstance
     //calculateMoves();
   }
   
-  void runTestCases()
-  {
-      
-    // test cases
-    // 1) move crab from room to corridor
-    //corridor.segments[2].update(rooms[0].getCrab());
-    //corridor.segments[1].update(rooms[0].getCrab());
-  
-    println();
-    printRooms();
-        println();
-    printMoveCandidates();
-    
-    // 2) add crab to room
-    rooms[0].addCrab(new Crab('Z',rooms));
-    println();
-    printRooms();
-        println();
-    printMoveCandidates();
-    
-    // 3) room open?
-    rooms[0].getCrab();
-    rooms[0].getCrab();
-    rooms[0].getCrab();
-    rooms[0].getCrab();
-    println();
-    printRooms();
-        println();
-    printMoveCandidates();
-  
-    rooms[0].addCrab(new Crab('A',rooms));
-    rooms[0].addCrab(new Crab('A',rooms));
-    rooms[0].addCrab(new Crab('A',rooms));
-    println();
-    printRooms();
-        println();
-    printMoveCandidates();
-  
-    println("[A] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('A',rooms)));
-    println("[B] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('B',rooms)));
-    
-    println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
-    println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
-    println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
-    println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
-    println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
-    println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
-    
-    //corridor.segments[3].update(new Crab('A',rooms));
-    printRooms();
-      println();
-    printMoveCandidates();
-  }
-  
-  
-  
   public void initRoomsExample()
   {
     
@@ -203,6 +147,62 @@ public class GameInstance
       crabMasterList.addAll(rooms[i].crabs);
     }
   }
+  
+  
+  //void runTestCases()
+  //{
+      
+  //  // test cases
+  //  // 1) move crab from room to corridor
+  //  //corridor.segments[2].update(rooms[0].getCrab());
+  //  //corridor.segments[1].update(rooms[0].getCrab());
+  
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+    
+  //  // 2) add crab to room
+  //  rooms[0].addCrab(new Crab('Z',rooms));
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+    
+  //  // 3) room open?
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  rooms[0].getCrab();
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+  
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  rooms[0].addCrab(new Crab('A',rooms));
+  //  println();
+  //  printRooms();
+  //      println();
+  //  printMoveCandidates();
+  
+  //  println("[A] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('A',rooms)));
+  //  println("[B] can enter room 0 with type:"+rooms[0].roomName+" "+rooms[0].canEnter(new Crab('B',rooms)));
+    
+  //  println("Can I reach 8 from 2? "+corridor.canReachFrom(2,8));
+  //  println("Can I reach 1 from 8? "+corridor.canReachFrom(8,1));
+  //  println("Can I reach 6 from 8? "+corridor.canReachFrom(8,6));
+  //  println("Can I reach 7 from 8? "+corridor.canReachFrom(8,7));
+  //  println("Can I reach 6 from 6? "+corridor.canReachFrom(6,6)); // technically allowed - but its useless, so should we fail this?
+  //  println("Can I reach 0 from 6? "+corridor.canReachFrom(6,0));
+    
+  //  //corridor.segments[3].update(new Crab('A',rooms));
+  //  printRooms();
+  //    println();
+  //  printMoveCandidates();
+  //}
+  
   
   public int roomNameToCorridorAccess(char t)
   {
@@ -259,71 +259,71 @@ public class GameInstance
     println("Current score:"+runningScore);
   }
   
-  public void printMoveCandidates()
-  {
-    int i=0;
-    Crab c;
+  //public void printMoveCandidates()
+  //{
+  //  int i=0;
+  //  Crab c;
         
-    print("Move candidates:");
-    // First check all the rooms
-    for (i=0;i<4;i++)
-    {
-      // we're only interest in looking in rooms which have crabs
-      // and that room isn't already open (an open room indicates
-      // its either empty or the crabs that are in it are the right
-      // type - and if they're the right type we dont want to move
-      // them again).
-      if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
-      {
-        // find the crab nearest the opening
-        c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
-        print(c.type+",");
+  //  print("Move candidates:");
+  //  // First check all the rooms
+  //  for (i=0;i<4;i++)
+  //  {
+  //    // we're only interest in looking in rooms which have crabs
+  //    // and that room isn't already open (an open room indicates
+  //    // its either empty or the crabs that are in it are the right
+  //    // type - and if they're the right type we dont want to move
+  //    // them again).
+  //    if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
+  //    {
+  //      // find the crab nearest the opening
+  //      c=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+  //      print(c.type+",");
         
-        // Can this crab move directly to its home?
-        legalToMoveHome(rooms[i].corridorAccess,c);
-      }
-      println();
-    }
+  //      // Can this crab move directly to its home?
+  //      legalToMoveHome(rooms[i].corridorAccess,c);
+  //    }
+  //    println();
+  //  }
     
-    for (i=0;i<11;i++)
-    {
-      if (corridor.segments[i].occupied==true)
-      {
-        print("|");
-        c=corridor.segments[i].occupant;
-        print(corridor.segments[i].occupant.type+",");
+  //  for (i=0;i<11;i++)
+  //  {
+  //    if (corridor.segments[i].occupied==true)
+  //    {
+  //      print("|");
+  //      c=corridor.segments[i].occupant;
+  //      print(corridor.segments[i].occupant.type+",");
         
-        legalToMoveHome(i,c);
+  //      legalToMoveHome(i,c);
 
-        println();
-      }
-    }
-  }
+  //      println();
+  //    }
+  //  }
+  //}
   
-  // Location here is the position in the corridor the crab would be if it exited
-  // its current room, and therefore the complete "move" needs to also account
-  // for where the crab is in the original room before it moves (if it is in a room).
-  public boolean legalToMoveHome(int location, Crab c)
-  {
-    if (corridor.canReachFrom(location,roomNameToCorridorAccess(c.type))==true)
-    {
-      print(" Can reach home");
-      if (c.getTargetLocation(rooms).open()==true)
-      {
-        print(" and its open");
-        return(true);
-      }
-      else
-      {
-        print(" but its closed");
-      }
-    }
-    else
-    {
-      print(" can not reach home");
-    }
-    return(false);
-  }
+  //// Location here is the position in the corridor the crab would be if it exited
+  //// its current room, and therefore the complete "move" needs to also account
+  //// for where the crab is in the original room before it moves (if it is in a room).
+  //public boolean legalToMoveHome(int location, Crab c)
+  //{
+  //  if (corridor.canReachFrom(location,roomNameToCorridorAccess(c.type))==true)
+  //  {
+  //    print(" Can reach home");
+  //    if (c.getTargetLocation(rooms).open()==true)
+  //    {
+  //      print(" and its open");
+  //      return(true);
+  //    }
+  //    else
+  //    {
+  //      print(" but its closed");
+  //    }
+  //  }
+  //  else
+  //  {
+  //    print(" can not reach home");
+  //  }
+  //  return(false);
+  //}
   
   
   // we should repeat steps 1 & 2 in this until no more
@@ -1346,26 +1346,6 @@ public class InputFile
   }
 }
 
-public class BitMask
-{
-  int bm=0;
-  public BitMask()
-  {
-  }
-  public int setBit(int i)
-  {
-    bm |= 1<<i;   
-    return(bm);
-  }
-  public int bitSet(int i)
-  {
-    return(bm & (1<<i));
-  }
-  public void printBitMask()
-  {
-    println("BM:"+Integer.toBinaryString(bm));
-  }
-}
 
 public class Minimum
 {
@@ -1414,235 +1394,5 @@ public class Maximum
     {
       value=v;
     }
-  }
-}
-
-public class LinkedList
-{
-  LinkedList forward=null;
-  LinkedList back=null;
-  int cupLabel=-1;
-  
-  public LinkedList(int c)
-  {
-    cupLabel=c;
-  }
-  
-  public LinkedList(int c, LinkedList l)
-  {
-    cupLabel=c;
-    back=l;
-    l.forward=this;
-  }
-  
-  public boolean inList(int c)
-  {
-    LinkedList start;
-    LinkedList n;
-    
-    n=this;
-    start=this;
-    
-    do 
-    {
-      if (n.cupLabel==c)
-      {
-        return(true);
-      }
-      n=n.forward;
-    }
-    while (n!=null && n!=start);
-    return(false);
-  }
-  
-  public LinkedList cutSubList(int nodes)
-  {
-    int i=0;
-    LinkedList subListStart=null;
-    LinkedList remainderList=null;
-    LinkedList cutpoint=null;
-    
-    // capture the start of the sublist
-    subListStart=this.forward;
-    this.forward=null;
-    cutpoint=this;
-    
-    // wind forward to the point where the remainder list starts
-    remainderList=subListStart;
-    for (i=0;i<nodes;i++)
-    {
-      remainderList=remainderList.forward;
-    }
-    
-    // detach the sublist from the main list
-    remainderList.back.forward=null;
-    subListStart.back=null;
-    
-    //reattach the 2 halves of the list
-    //println("recombining lists; this node");
-    //this.printNode();
-    //println("remainder:");
-    //remainderList.printList();
-    
-    cutpoint.forward=remainderList;
-    remainderList.back=cutpoint;
-
-    //println("Combined list:");
-    //this.printList();
-    
-    return(subListStart);
-  }
-  
-  public void addListAfter(LinkedList subListToAdd)
-  {
-    LinkedList addToLocation=null;
-    LinkedList nextNodeToAdd=null;
-    
-    addToLocation=this;
-    boolean done=false;
-
-    int max=5;
-    
-    do 
-    {
-      // is this the end of the sublist?
-      if (subListToAdd.forward==null)
-      {
-        done=true;
-      }
-      else
-      {
-        // Save the next node
-        nextNodeToAdd=subListToAdd.forward;
-        
-        // detach this one from the sub list.
-        subListToAdd.forward=null;
-      }
-
-      //print("adding to node:");
-      //addToLocation.printNode();
-
-      //print("adding node:");
-      //subListToAdd.printNode();
-      subListToAdd.addNodeAfter(addToLocation);
-      
-      //print("node added:");
-      //subListToAdd.printNode();
-      
-      // move forward after the node we just added
-      addToLocation=addToLocation.forward;
-      
-      
-      // move to the next node in the sublist we're trying to add
-      subListToAdd=nextNodeToAdd;
-    }
-    while (done==false && max-- >=0);    
-  }
-
-  // Assumes an *always* valid node b to attach too, will optionally forward
-  // link if b already has a forward link. i.e. will *insert* if b is middle
-  // of a list, but will add if b is end of list.
-  public void addNodeAfter(LinkedList b)
-  {
-    // save the current forward link, as we'll attach this node to that eventually
-    LinkedList f=b.forward;
-    
-    // connect this node *backwards* to the b node...
-    this.back=b;
-    b.forward=this;
-    
-    if (f!=null)
-    {
-      // ... and *forwards* to the f node, which we saved earlier
-      this.forward=f;
-      f.back=this;
-    }
-  }
-
-  public void printList()
-  {
-    LinkedList start;
-    LinkedList n;
-    
-    n=this;
-    start=this;
-    
-    do 
-    {
-      n.printNode();
-      n=n.forward;
-    }
-    while (n!=null && n!=start);
-  }
-  
-  
-  public void printNode()
-  {
-    //println("C:"+cupLabel+" fwd cup label:"+(forward==null?"null":forward.cupLabel)+" back cup label:"+(back==null?"null":back.cupLabel));
-    println((back==null?"null":back.cupLabel)+"<-["+cupLabel+"]->"+(forward==null?"null":forward.cupLabel));
-  }
-}
-
-// Given a string, this class can create *all* permutations
-// of that string by rearranging characters - each character
-// is still used only the same amount of times as the original
-// source.
-public class Permutations
-{
-  String components;
-  
-  public Permutations(String s)
-  {
-    components=s;
-  }
-  
-  public void walk()
-  {
-    walk(components,"");
-  }
-  
-  public void walk(String input, String current)
-  {
-    int i=0;
-    
-    // for each character in the input
-    for (i=0;i<input.length();i++)
-    {
-      // if there is more than 1 character left, then we need to fork and repeat
-      // the walk for each new substring
-      if (input.length()>1)
-      {
-        // lock in this char, by removing the character at the current index from the string
-        String remainder=input.substring(0,i)+input.substring(i+1,input.length());
-        //println(input.charAt(i)+" R:"+remainder);
-        
-        // walk the tree for the remaining characters now that we've locked one
-        // in for this set of permuations.
-        walk(remainder,current+input.charAt(i));
-      }
-      else
-      {
-        // we only have one character left, so we cant "walk" any further on this branch
-        // dump the permuation so far, plus this last remaining char
-        //println("[P]-->"+current+input);
-        printPerm(current+input);
-      }
-    }
-  }
-  
-  public void printPerm(String s)
-  {
-    int i=0;
-    print("{");
-    
-    for (i=0;i<s.length();i++)
-    {
-      print(s.charAt(i));
-      if (i+1<s.length())
-      {
-        print(",");
-      }
-    }
-    println("},");
   }
 }
