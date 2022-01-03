@@ -1,4 +1,4 @@
-import java.io.File;
+ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -139,12 +139,6 @@ public class GameInstance
     rooms[3].forceAddCrab(new Crab('A',rooms));
     rooms[3].forceAddCrab(new Crab('D',rooms));
     
-    // copy all the crabs into the master list for easy access
-    // not sure yet if I need this, but lets make it anyway.
-    for (i=0;i<4;i++)
-    {
-      crabMasterList.addAll(rooms[i].crabs);
-    }
   }
   
   
