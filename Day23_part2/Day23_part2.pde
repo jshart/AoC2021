@@ -51,6 +51,7 @@ void setup() {
   
   g.runTestCases2();
 
+  //g.printGameInstance();
 }
 
 void printMasterList()
@@ -72,6 +73,20 @@ public class GameInstance
   Room[] rooms=new Room[4];
   Corridor corridor = new Corridor();  
   int runningScore=0;
+
+  public void printGameInstance()
+  {
+    println("/=== Start Game Instance Dump ====");
+    int i=0;
+    for (i=0;i<4;i++)
+    {
+      rooms[i].printRoom();
+    }
+    
+    corridor.printCorridor();
+    println("\\=== End Game Instance Dump ====");
+
+  }
 
   public GameInstance()
   {
@@ -399,6 +414,10 @@ public class GameInstance
       }
     }
     
+    // TODO - this *almost* represents the state we want to save - we need to remove the instance of the
+    // movement rule we're about to test, such that next time we re-enter we can test a different rule.
+    printGameInstance();
+    
     if (anyMoveFound==true)
     {
       println("Lowest cost corridor move is; "+currentBestMove.movementSummary(currentCrabWithBestMove));
@@ -535,6 +554,15 @@ public class Corridor
   CorridorSegment[] segments=new CorridorSegment[11];
   int[] corridorMask={1,1,0,1,0,1,0,1,0,1,1};
   
+  public void printCorridor()
+  {
+    int i=0;
+    for (i=0;i<segments.length;i++)
+    {
+      segments[i].printCorridorSegment();
+    }
+  }
+  
   public Corridor()
   {
     int i=0;
@@ -602,6 +630,16 @@ public class CorridorSegment
   int permitted=0;
   int location=0;
   boolean occupied=false;
+  
+  public void printCorridorSegment()
+  {
+    // print segment specific stuff first
+    println("[LC:"+location+" P:"+permitted+" O:"+occupied+" Crab:"+occupant+"]");
+    if (occupant!=null)
+    {
+      occupant.printCrab();
+    }
+  }
   
   public CorridorSegment duplicate()
   {
@@ -785,6 +823,9 @@ public class Movement
       c.segments[corridorIndex].occupied=true;
       temp.setCorridorLocation(c.segments[corridorIndex]);
       temp.setCorridorSegmentIndex(corridorIndex);
+      
+      // Now that we've moved, throw away the old moves.
+      temp.permittedCorridorMoves.clear();
     }
     return(weightedCost);
   }
@@ -880,6 +921,17 @@ public class Crab
   //private Room myTargetRoomRef=null;
   ArrayList<Movement> permittedCorridorMoves = new ArrayList<Movement>();
 
+  public void printCrab()
+  {
+    // Print the crab specific info
+    println("* TY:"+type+" CSI:"+corridorSegmentIndex+" CSR:"+corridorSegmentRef);
+    
+    int i=0;
+    for (i=0;i<permittedCorridorMoves.size();i++)
+    {
+      println("->"+permittedCorridorMoves.get(i).movementSummary(this));
+    }
+  }
   
   public Crab(char t, Room[] rooms)
   {
@@ -1064,6 +1116,18 @@ public class Room
   public Room()
   {
 
+  }
+  
+  public void printRoom()
+  {
+    // print room specific info
+    println("[RM:"+roomName+" CA:"+corridorAccess+"]");
+    
+    int i=0;
+    for (i=0;i<crabs.size();i++)
+    {
+      crabs.get(i).printCrab();
+    }
   }
   
   public Crab getCrab()
