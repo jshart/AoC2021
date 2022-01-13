@@ -102,8 +102,10 @@ public class GameInstance
 
     do
     {
+      calculateRoomMoves();
+      
     }
-    while(calculateMoves()==true);
+    while(calculateCorridorMoves()==true);
     
     // need to add some crabs to the corridor to test blocking - for example
     // add a 'B' at position '5' would block all crabs to the right from moving left
@@ -223,7 +225,7 @@ public class GameInstance
   // back.
   // update/maintain a running count of the fuel spent on
   // this game instance.
-  public boolean calculateMoves()
+  public boolean calculateRoomMoves()
   {
     int i=0,j=0;
     Crab crab;
@@ -237,8 +239,6 @@ public class GameInstance
     // tree.
     Movement homeMove=null;
     boolean moveHomeFound=false;
-    boolean anyMoveFound=false;
-    
     
     do
     {
@@ -268,8 +268,6 @@ public class GameInstance
             
             runningScore+=homeMove.executeMove(crab, corridor, rooms);
             moveHomeFound=true;
-            anyMoveFound=true;
-
           }
           else
           {
@@ -312,7 +310,6 @@ public class GameInstance
             
             runningScore+=homeMove.executeMove(crab, corridor, rooms);
             moveHomeFound=true;
-            anyMoveFound=true;
           }
           else
           {
@@ -334,6 +331,15 @@ public class GameInstance
       }
     } while (moveHomeFound==true);
     
+    return(moveHomeFound);
+  } 
+    
+  boolean calculateCorridorMoves()
+  {
+    boolean anyMoveFound=false;
+    int i=0,j=0;
+    Crab crab;
+
     // there is one sorting edge case where the below code breaks
     // down. Each returned list of moves is pre-sorted into cost order,
     // but if we have *2 or more* crabs of the same type that may move
@@ -362,6 +368,10 @@ public class GameInstance
     Movement currentBestMove=null;
     Movement tempMove=null;
     Crab currentCrabWithBestMove=null;
+    
+    // TODO - need to split this for loop and run 2 passes. First pass
+    // to calculate all the possible routes. 2nd pass to find the best
+    // route from those. This allows us to sort out the state saving stuff.
     for (i=0;i<4;i++)
     {
       // we're only interest in looking in rooms which have crabs
