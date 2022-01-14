@@ -73,6 +73,9 @@ public class GameInstance
   Room[] rooms=new Room[4];
   Corridor corridor = new Corridor();  
   int runningScore=0;
+  Movement currentBestMove=null;
+  Crab currentCrabWithBestMove=null;
+
 
   public void printGameInstance()
   {
@@ -100,12 +103,31 @@ public class GameInstance
     //rooms[1].getCrab();
     //printRooms();
 
+    boolean anyMoveFound=false;
     do
     {
-      calculateRoomMoves();
-      
+      anyMoveFound=false;
+      anyMoveFound=calculateAndExecuteRoomMoves();
+      anyMoveFound=calculateCorridorMoves();
+      anyMoveFound=calculateBestMove();
+
+      // At this point we've played out a complete set of moves
+      // to the point where we need to think about forking. We
+      // need to remove the "best Move" from the state info
+      // we want to store. Store the state info. Then execute
+      // the best move on the current working copy. Once this
+      // "fork" has played out to the end, we can roll back
+      // to this snapshot and try the next fork, and so on.
+      // This "emulates" recursion, but using a local stack
+      // to store the state rather than repeatedly calling a
+      // function and using the system stack to store the
+      // function state.
+      if (anyMoveFound==true)
+      {
+        executeBestMove();
+      }
     }
-    while(calculateCorridorMoves()==true);
+    while(anyMoveFound==true);
     
     // need to add some crabs to the corridor to test blocking - for example
     // add a 'B' at position '5' would block all crabs to the right from moving left
@@ -225,7 +247,7 @@ public class GameInstance
   // back.
   // update/maintain a running count of the fuel spent on
   // this game instance.
-  public boolean calculateRoomMoves()
+  public boolean calculateAndExecuteRoomMoves()
   {
     int i=0,j=0;
     Crab crab;
@@ -333,45 +355,84 @@ public class GameInstance
     
     return(moveHomeFound);
   } 
-    
+  
+  // there is one sorting edge case where the below code breaks
+  // down. Each returned list of moves is pre-sorted into cost order,
+  // but if we have *2 or more* crabs of the same type that may move
+  // this turn, each of those will return a seperate list, and we 
+  // need to manage that sets (basically we either need to sort them, or
+  // take the lowest cost from each).
+  //
+  // Note: at any one round there are a maximum of 4 candidates that
+  // can move into the corridor. This is because there are only a
+  // maximum of 4 rooms that crabs can come from *into* the corridor.
+  //
+  // We should simply (somehow) track the output of the 4 searchs, and
+  // then check each list for the lowest value (a max of 4 comparisons
+  // is not too costly and saves us sorting elements)
+  // 
+  // the above is a more effecient approach, but it was actually fiddly
+  // to make that work, so I've gone with a simplier approach of concat
+  // all the lists and just doing a simple linear search for the move
+  // with the lowest cost.
+  
+  // Check each room in turn looking for a room that has a candidate
+  // to move out into the corridor.
   boolean calculateCorridorMoves()
+  {
+    boolean anyMoveFound=false;
+    int i=0;
+    Crab crab;
+
+    println("Move from room to corridor candidates:");
+    anyMoveFound=false;
+
+    // Calculate all the permitted moves for each crab that is capable
+    // of moving out of a room
+    for (i=0;i<4;i++)
+    {
+      // we're only interest in looking in rooms which have crabs
+      // and that room isn't already open (an open room indicates
+      // its either empty or the crabs that are in it are the right
+      // type - and if they're the right type we dont want to move
+      // them again
+      if (rooms[i].crabs.size()>0 && rooms[i].open()==false)
+      {
+        // find the crab nearest the opening
+        crab=rooms[i].crabs.get(rooms[i].crabs.size()-1);
+        println("Found:"+crab.type);
+        
+        // calculate all of its permitted moves into the corridor
+        if (crab.permittedCorridorMovesForthisCrab(rooms,corridor)>0)
+        {
+          anyMoveFound=true;
+        }
+      }
+    }
+    return(anyMoveFound);
+  }
+  
+  // TODO - somewhere in here or in executeBestMove we need to actually
+  // remove the best move from the state inforamtion so that its no
+  // longer a candidate when we re-iterate back to check the next fork.
+  // I think its best to do it in here - we can maintain local var(s)
+  // to track which room/move is the best so that when we've completed
+  // our search we can just reference back to its storage location
+  // and zap it.
+  boolean calculateBestMove()
   {
     boolean anyMoveFound=false;
     int i=0,j=0;
     Crab crab;
-
-    // there is one sorting edge case where the below code breaks
-    // down. Each returned list of moves is pre-sorted into cost order,
-    // but if we have *2 or more* crabs of the same type that may move
-    // this turn, each of those will return a seperate list, and we 
-    // need to manage that sets (basically we either need to sort them, or
-    // take the lowest cost from each).
-    //
-    // Note: at any one round there are a maximum of 4 candidates that
-    // can move into the corridor. This is because there are only a
-    // maximum of 4 rooms that crabs can come from *into* the corridor.
-    //
-    // We should simply (somehow) track the output of the 4 searchs, and
-    // then check each list for the lowest value (a max of 4 comparisons
-    // is not too costly and saves us sorting elements)
-    // 
-    // the above is a more effecient approach, but it was actually fiddly
-    // to make that work, so I've gone with a simplier approach of concat
-    // all the lists and just doing a simple linear search for the move
-    // with the lowest cost.
-    
-    // Check each room in turn looking for a room that has a candidate
-    // to move out into the corridor.
-    println("Move from room to corridor candidates:");
-    anyMoveFound=false;
     int numMovesFound=0;
-    Movement currentBestMove=null;
     Movement tempMove=null;
-    Crab currentCrabWithBestMove=null;
-    
-    // TODO - need to split this for loop and run 2 passes. First pass
-    // to calculate all the possible routes. 2nd pass to find the best
-    // route from those. This allows us to sort out the state saving stuff.
+
+    currentBestMove=null;
+    currentCrabWithBestMove=null;
+    anyMoveFound=false;
+
+    // Now that all the moves have been calculated, lets check to
+    // find the best route we can take.
     for (i=0;i<4;i++)
     {
       // we're only interest in looking in rooms which have crabs
@@ -386,7 +447,7 @@ public class GameInstance
         println("Found:"+crab.type);
         
         // retreive all of its permitted moves into the corridor
-        numMovesFound=crab.permittedCorridorMovesForthisCrab(rooms,corridor);
+        numMovesFound=crab.permittedCorridorMoves.size();
         
         if (numMovesFound>0)
         {
@@ -423,25 +484,18 @@ public class GameInstance
         }
       }
     }
-    
-    // TODO - this *almost* represents the state we want to save - we need to remove the instance of the
-    // movement rule we're about to test, such that next time we re-enter we can test a different rule.
+    return(anyMoveFound);
+  }
+  
+  void executeBestMove()
+  {
     printGameInstance();
     
-    if (anyMoveFound==true)
-    {
-      println("Lowest cost corridor move is; "+currentBestMove.movementSummary(currentCrabWithBestMove));
+    println("Lowest cost corridor move is; "+currentBestMove.movementSummary(currentCrabWithBestMove));  
       
-      runningScore+=currentBestMove.executeMove(currentCrabWithBestMove, corridor, rooms);
+    runningScore+=currentBestMove.executeMove(currentCrabWithBestMove, corridor, rooms);
       
-      printRooms();
-    }
-    
-    if (anyMoveFound==true)
-    {
-    }
-    
-    return(anyMoveFound);
+    printRooms();
   }
   
   public Movement findLeastCost(ArrayList<Movement> input)
